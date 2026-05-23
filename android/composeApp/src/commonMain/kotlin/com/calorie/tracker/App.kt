@@ -77,11 +77,14 @@ fun App(
                 println("CalorieApp: getProfile profile height: ${profile.height}")
                 if (profile.height <= 0.0 && !hasCompletedOnboarding) {
                     currentScreen = Screen.Onboarding
-                } else {
+                } else if (profile.height > 0.0) {
                     calorieGoal = profile.dailyCalorieGoal
                     carbsGoalPct = profile.dailyCarbsGoal
                     proteinGoalPct = profile.dailyProteinGoal
                     fatGoalPct = profile.dailyFatGoal
+                    hasCompletedOnboarding = true
+                } else {
+                    // Profile height is 0.0 but onboarding completed locally
                     hasCompletedOnboarding = true
                 }
             }?.onFailure { e ->
@@ -245,6 +248,7 @@ fun App(
                                             fatGoalPct = 20
                                             currentScreen = Screen.Dashboard
                                         } else {
+                                            println("CalorieApp: updateProfile failed with error: ${result?.exceptionOrNull()?.message}")
                                             // Fallback local navigation if backend fails
                                             hasCompletedOnboarding = true
                                             calorieGoal = targetCalories
