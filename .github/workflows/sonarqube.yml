@@ -32,12 +32,13 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           args: >
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
             -Dsonar.projectKey=calorie-tracker-app
             -Dsonar.sources=backend/src/main/java,android/composeApp/src/commonMain/kotlin,android/composeApp/src/androidMain/kotlin,frontend/src
             -Dsonar.java.binaries=backend/target/classes,android/composeApp/build/classes
