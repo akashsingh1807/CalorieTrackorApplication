@@ -61,10 +61,10 @@ fun WaterTrackerScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFFAFAFA))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
-        containerColor = Color(0xFFFAFAFA)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -78,7 +78,7 @@ fun WaterTrackerScreen(
             Box(contentAlignment = Alignment.Center, modifier = Modifier.size(250.dp)) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     drawArc(
-                        color = Color(0xFFE3F2FD),
+                        color = Color(0xFF2196F3).copy(alpha = 0.15f),
                         startAngle = -90f,
                         sweepAngle = 360f,
                         useCenter = false,
@@ -97,7 +97,7 @@ fun WaterTrackerScreen(
                         text = "$waterGlasses / $targetGlasses",
                         fontSize = 36.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "Glasses",
@@ -126,7 +126,7 @@ fun WaterTrackerScreen(
                         }
                     },
                     modifier = Modifier.size(64.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color(0xFFF5F5F5), contentColor = Color.Black),
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
                     shape = CircleShape
                 ) {
                     Icon(Icons.Default.Remove, contentDescription = "Remove Water")

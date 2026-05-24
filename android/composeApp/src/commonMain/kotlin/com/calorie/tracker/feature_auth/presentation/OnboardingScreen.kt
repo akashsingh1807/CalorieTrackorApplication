@@ -38,7 +38,7 @@ fun OnboardingScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFF8F9FA)
+        color = MaterialTheme.colorScheme.background
     ) {
         Column(
             modifier = Modifier
@@ -53,13 +53,13 @@ fun OnboardingScreen(
                 text = "Let's Get Started",
                 style = MaterialTheme.typography.displayMedium.copy(
                     fontSize = 32.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Tell us a bit about yourself so we can calculate your personalized goals.",
-                style = MaterialTheme.typography.bodyLarge.copy(color = Color.DarkGray),
+                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)),
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
@@ -101,8 +101,12 @@ fun OnboardingScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
-                                focusedBorderColor = Color.Black,
-                                unfocusedBorderColor = Color.LightGray
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                         ExposedDropdownMenu(
@@ -136,8 +140,12 @@ fun OnboardingScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
-                                focusedBorderColor = Color.Black,
-                                unfocusedBorderColor = Color.LightGray
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                         ExposedDropdownMenu(

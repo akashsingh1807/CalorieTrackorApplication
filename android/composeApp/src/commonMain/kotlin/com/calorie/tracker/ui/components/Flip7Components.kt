@@ -140,7 +140,7 @@ fun Flip7Card(
                 offsetY = 4.dp
             ),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
             // Left colored accent bar
@@ -182,8 +182,8 @@ fun Flip7TextField(
             unfocusedContainerColor = Color.Transparent,
             focusedBorderColor = PrimaryTeal,
             unfocusedBorderColor = Color.LightGray,
-            focusedTextColor = Color.Black,
-            unfocusedTextColor = Color.Black,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
             focusedLabelColor = PrimaryTeal,
             unfocusedLabelColor = Color.Gray
         ),

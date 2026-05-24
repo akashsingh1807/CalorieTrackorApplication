@@ -40,7 +40,7 @@ fun AuthScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(SurfaceBase)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -78,7 +78,7 @@ fun AuthScreen(
                 Text(
                     text = "Caloriyaan",
                     style = MaterialTheme.typography.headlineMedium.copy(
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 1.sp
                     )

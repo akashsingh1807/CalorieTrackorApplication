@@ -59,10 +59,10 @@ fun DailyGoalsScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -77,7 +77,7 @@ fun DailyGoalsScreen(
                 Text(
                     text = "Calories",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 UnderlineInputField(
                     value = caloriesText,
@@ -117,7 +117,7 @@ fun DailyGoalsScreen(
                 Text(
                     text = "Carbohydrates ${carbsGrams}g",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 UnderlineInputField(
                     value = carbsPctText,
@@ -133,7 +133,7 @@ fun DailyGoalsScreen(
                 Text(
                     text = "Protein ${proteinGrams}g",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 UnderlineInputField(
                     value = proteinPctText,
@@ -149,7 +149,7 @@ fun DailyGoalsScreen(
                 Text(
                     text = "Fat ${fatGrams}g",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 UnderlineInputField(
                     value = fatPctText,
@@ -187,7 +187,7 @@ private fun UnderlineInputField(
                 textStyle = TextStyle(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Normal,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f).padding(vertical = 8.dp)
@@ -196,11 +196,11 @@ private fun UnderlineInputField(
                 Text(
                     text = suffix,
                     fontSize = 18.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 4.dp)
                 )
             }
         }
-        HorizontalDivider(color = Color.LightGray, thickness = 1.dp)
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
     }
 }

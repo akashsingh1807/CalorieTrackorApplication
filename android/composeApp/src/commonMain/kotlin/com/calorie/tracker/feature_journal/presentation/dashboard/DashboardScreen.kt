@@ -47,6 +47,8 @@ import com.calorie.tracker.ui.components.Flip7ButtonVariant
 import com.calorie.tracker.ui.components.Flip7SectionTitle
 import com.calorie.tracker.ui.theme.CoralPrimary
 import com.calorie.tracker.ui.theme.PrimaryTeal
+import com.calorie.tracker.ui.theme.AccentGold
+import com.calorie.tracker.ui.theme.SkyBlue
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlin.math.min
@@ -216,18 +218,18 @@ fun DashboardScreen(
                             text = if (selectedDate == LocalDate(2026, 5, 20)) "Today" else if (selectedDate == LocalDate(2026, 5, 19)) "Yesterday" else "${selectedDate.dayOfMonth} ${selectedDate.month.name.lowercase().replaceFirstChar { it.uppercase() }}",
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 20.sp,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Icon(
                             imageVector = Icons.Default.ArrowDropDown,
                             contentDescription = "Date dropdown",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
 
                         DropdownMenu(
                             expanded = dropdownExpanded,
                             onDismissRequest = { dropdownExpanded = false },
-                            modifier = Modifier.background(Color.White)
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Today") },
@@ -248,7 +250,7 @@ fun DashboardScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onMenuClick) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.Black)
+                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 actions = {
@@ -276,7 +278,7 @@ fun DashboardScreen(
                             text = "27",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -288,7 +290,7 @@ fun DashboardScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         bottomBar = {
@@ -296,7 +298,7 @@ fun DashboardScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 12.dp, vertical = 8.dp)
                     .navigationBarsPadding()
                     .imePadding(),
@@ -305,14 +307,16 @@ fun DashboardScreen(
                 TextField(
                     value = queryText,
                     onValueChange = { queryText = it },
-                    placeholder = { Text("What did you eat or exercise?", color = Color.Gray, fontSize = 14.sp) },
+                    placeholder = { Text("What did you eat or exercise?", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), fontSize = 14.sp) },
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp),
                                         colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFFF1F3F4),
-                        unfocusedContainerColor = Color(0xFFF1F3F4),
-                        disabledContainerColor = Color(0xFFF1F3F4),
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent
@@ -344,7 +348,7 @@ fun DashboardScreen(
                         Icon(
                             imageVector = if (bookmarks.isNotEmpty()) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                             contentDescription = "Saved Meals",
-                            tint = if (bookmarks.isNotEmpty()) Color(0xFF1976D2) else Color.DarkGray,
+                            tint = if (bookmarks.isNotEmpty()) Color(0xFF1976D2) else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -352,7 +356,7 @@ fun DashboardScreen(
                         Icon(
                             imageVector = Icons.Default.Image,
                             contentDescription = "Gallery",
-                            tint = Color.DarkGray,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -360,7 +364,7 @@ fun DashboardScreen(
                         Icon(
                             imageVector = Icons.Default.PhotoCamera,
                             contentDescription = "Camera",
-                            tint = Color.DarkGray,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -375,7 +379,7 @@ fun DashboardScreen(
                 }
             }
         },
-        containerColor = Color(0xFFFAFAFA)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -407,7 +411,7 @@ fun DashboardScreen(
 
                         val bgColor = if (isLogged) Color(0xFFFFF1F0) else Color.Transparent
                         val borderColor = if (isSelected) {
-                            if (isLogged) Color(0xFFD32F2F) else Color.Black
+                            if (isLogged) Color(0xFFD32F2F) else MaterialTheme.colorScheme.onBackground
                         } else {
                             Color.Transparent
                         }
@@ -441,7 +445,7 @@ fun DashboardScreen(
                                 text = dayNum,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isLogged) Color(0xFFD32F2F) else Color.Black
+                                color = if (isLogged) Color(0xFFD32F2F) else MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
@@ -473,7 +477,7 @@ fun DashboardScreen(
                                     text = "Calories",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
-                                    color = Color.Black
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             Row(
@@ -486,18 +490,18 @@ fun DashboardScreen(
                                         text = "$foodVal",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.Black
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    Text("Food", fontSize = 10.sp, color = Color.Gray)
+                                    Text("Food", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Column(horizontalAlignment = Alignment.Start) {
                                     Text(
                                         text = "0",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.Black
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    Text("Exercise", fontSize = 10.sp, color = Color.Gray)
+                                    Text("Exercise", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Column(horizontalAlignment = Alignment.Start) {
                                     val foodVal = meals.sumOf { it.totalCalories }.roundToInt()
@@ -506,9 +510,9 @@ fun DashboardScreen(
                                         text = "$remaining",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.Black
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    Text("Remaining", fontSize = 10.sp, color = Color.Gray)
+                                    Text("Remaining", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         }
@@ -517,8 +521,8 @@ fun DashboardScreen(
                     // Macros Card
                     Card(
                         modifier = Modifier.weight(1f).height(105.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
                         Column(
                             modifier = Modifier.fillMaxSize().padding(12.dp),
@@ -531,21 +535,21 @@ fun DashboardScreen(
                                 Box(modifier = Modifier.size(16.dp)) {
                                     Canvas(modifier = Modifier.fillMaxSize()) {
                                         drawArc(
-                                            color = Color.DarkGray,
+                                            color = PrimaryTeal,
                                             startAngle = 0f,
                                             sweepAngle = 120f,
                                             useCenter = false,
                                             style = Stroke(width = 3.dp.toPx())
                                         )
                                         drawArc(
-                                            color = Color.LightGray,
+                                            color = CoralPrimary,
                                             startAngle = 120f,
                                             sweepAngle = 120f,
                                             useCenter = false,
                                             style = Stroke(width = 3.dp.toPx())
                                         )
                                         drawArc(
-                                            color = Color.Black,
+                                            color = AccentGold,
                                             startAngle = 240f,
                                             sweepAngle = 120f,
                                             useCenter = false,
@@ -558,7 +562,7 @@ fun DashboardScreen(
                                     text = "Macros",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
-                                    color = Color.Black
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             Row(
@@ -569,43 +573,43 @@ fun DashboardScreen(
                                     val carbsVal = meals.sumOf { it.totalCarbs }.roundToInt()
                                     Text(
                                         text = buildAnnotatedString {
-                                            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black, fontSize = 13.sp)) {
+                                            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)) {
                                                 append("$carbsVal")
                                             }
-                                            withStyle(SpanStyle(color = Color.Gray, fontSize = 10.sp)) {
+                                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)) {
                                                 append("/$carbsGoalGrams")
                                             }
                                         }
                                     )
-                                    Text("Carbs (g)", fontSize = 10.sp, color = Color.Gray)
+                                    Text("Carbs (g)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Column(horizontalAlignment = Alignment.Start) {
                                     val proteinVal = meals.sumOf { it.totalProtein }.roundToInt()
                                     Text(
                                         text = buildAnnotatedString {
-                                            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black, fontSize = 13.sp)) {
+                                            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)) {
                                                 append("$proteinVal")
                                             }
-                                            withStyle(SpanStyle(color = Color.Gray, fontSize = 10.sp)) {
+                                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)) {
                                                 append("/$proteinGoalGrams")
                                             }
                                         }
                                     )
-                                    Text("Protein (g)", fontSize = 10.sp, color = Color.Gray)
+                                    Text("Protein (g)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Column(horizontalAlignment = Alignment.Start) {
                                     val fatVal = meals.sumOf { it.totalFat }.roundToInt()
                                     Text(
                                         text = buildAnnotatedString {
-                                            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black, fontSize = 13.sp)) {
+                                            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)) {
                                                 append("$fatVal")
                                             }
-                                            withStyle(SpanStyle(color = Color.Gray, fontSize = 10.sp)) {
+                                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)) {
                                                 append("/$fatGoalGrams")
                                             }
                                         }
                                     )
-                                    Text("Fat (g)", fontSize = 10.sp, color = Color.Gray)
+                                    Text("Fat (g)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         }
@@ -628,10 +632,10 @@ fun DashboardScreen(
                             text = "Water: ${currentWaterCups * 0.25}L",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        HorizontalDivider(color = Color(0xFFF5F5F5))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -657,12 +661,12 @@ fun DashboardScreen(
                                     text = "$currentWaterCups Cups",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color.Black
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = "${16 - currentWaterCups} Cups Remaining",
                                     fontSize = 11.sp,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
@@ -699,7 +703,7 @@ fun DashboardScreen(
                                     text = "Daal ke Farae (100 g)",
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 16.sp,
-                                    color = Color.Black
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -708,8 +712,8 @@ fun DashboardScreen(
                                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text("Calories", fontSize = 11.sp, color = Color.Gray)
-                                        Text("150", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                        Text("Calories", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("150", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                                         Spacer(modifier = Modifier.height(4.dp))
                                         LinearProgressIndicator(
                                             progress = { 0.10f },
@@ -718,11 +722,11 @@ fun DashboardScreen(
                                             trackColor = Color(0xFFE3F2FD)
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
-                                        Text("10%", fontSize = 10.sp, color = Color.Gray)
+                                        Text("10%", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text("Carbs", fontSize = 11.sp, color = Color.Gray)
-                                        Text("20g", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                        Text("Carbs", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("20g", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                                         Spacer(modifier = Modifier.height(4.dp))
                                         LinearProgressIndicator(
                                             progress = { 0.12f },
@@ -731,11 +735,11 @@ fun DashboardScreen(
                                             trackColor = Color(0xFFE3F2FD)
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
-                                        Text("12%", fontSize = 10.sp, color = Color.Gray)
+                                        Text("12%", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text("Protein", fontSize = 11.sp, color = Color.Gray)
-                                        Text("8g", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                        Text("Protein", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("8g", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                                         Spacer(modifier = Modifier.height(4.dp))
                                         LinearProgressIndicator(
                                             progress = { 0.05f },
@@ -744,11 +748,11 @@ fun DashboardScreen(
                                             trackColor = Color(0xFFE3F2FD)
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
-                                        Text("5%", fontSize = 10.sp, color = Color.Gray)
+                                        Text("5%", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text("Fat", fontSize = 11.sp, color = Color.Gray)
-                                        Text("4g", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                        Text("Fat", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text("4g", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                                         Spacer(modifier = Modifier.height(4.dp))
                                         LinearProgressIndicator(
                                             progress = { 0.20f },
@@ -757,7 +761,7 @@ fun DashboardScreen(
                                             trackColor = Color(0xFFE3F2FD)
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
-                                        Text("20%", fontSize = 10.sp, color = Color.Gray)
+                                        Text("20%", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -766,18 +770,18 @@ fun DashboardScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("11:53 am", fontSize = 11.sp, color = Color.Gray)
+                                    Text("11:53 am", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                         Icon(
                                             imageVector = Icons.Default.Edit,
                                             contentDescription = "Edit",
-                                            tint = Color.Gray,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(18.dp)
                                         )
                                         Icon(
                                             imageVector = Icons.Default.MoreVert,
                                             contentDescription = "More",
-                                            tint = Color.Gray,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(18.dp)
                                         )
                                     }
@@ -791,7 +795,7 @@ fun DashboardScreen(
                                 Text(
                                     text = "120 gm dahi 200 gm daal cooked and 200 gm brown rice cooked",
                                     fontSize = 14.sp,
-                                    color = Color.Gray,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(bottom = 12.dp)
                                 )
 
@@ -822,7 +826,7 @@ fun DashboardScreen(
                                 )
 
                                 Spacer(modifier = Modifier.height(16.dp))
-                                HorizontalDivider(color = Color(0xFFF5F5F5))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                                 Spacer(modifier = Modifier.height(16.dp))
 
                                 Row(
@@ -854,9 +858,9 @@ fun DashboardScreen(
                                             Text(
                                                 text = meal.rawTextInput,
                                                 fontSize = 14.sp,
-                                                color = Color.DarkGray,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier
-                                                    .background(Color(0xFFEAF1FB), androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant, androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
                                                     .padding(8.dp)
                                             )
                                             Spacer(modifier = Modifier.height(8.dp))
@@ -865,13 +869,13 @@ fun DashboardScreen(
                                             text = meal.mealType,
                                             fontWeight = FontWeight.SemiBold,
                                             fontSize = 15.sp,
-                                            color = Color.Black
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
                                             text = "Carbs: ${meal.totalCarbs.roundToInt()}g  Protein: ${meal.totalProtein.roundToInt()}g  Fat: ${meal.totalFat.roundToInt()}g",
                                             fontSize = 12.sp,
-                                            color = Color.Gray
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -879,7 +883,7 @@ fun DashboardScreen(
                                             text = "${meal.totalCalories.roundToInt()} kcal",
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 15.sp,
-                                            color = Color.Black
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Spacer(modifier = Modifier.width(4.dp))
                                         // Bookmark icon — tap to save this meal as a bookmark
@@ -926,8 +930,7 @@ private fun FoodConfirmationDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
-                                    colors = CardDefaults.cardColors(containerColor = Color.White),
-            
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
@@ -936,17 +939,17 @@ private fun FoodConfirmationDialog(
                     text = "Food Analysis",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "\"$originalText\"",
                     fontSize = 12.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = Color(0xFFEEEEEE))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Food items list
@@ -969,13 +972,13 @@ private fun FoodConfirmationDialog(
                     )
                     if (index < items.lastIndex) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        HorizontalDivider(color = Color(0xFFF5F5F5))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = Color(0xFFEEEEEE))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Totals row
@@ -995,7 +998,7 @@ private fun FoodConfirmationDialog(
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(color = Color(0xFFEEEEEE))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // ── Micronutrients collapsible section ─────────────────────
@@ -1013,7 +1016,7 @@ private fun FoodConfirmationDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { showMicronutrients = !showMicronutrients }
-                        .background(Color(0xFFFAFAFA), androidx.compose.foundation.shape.RoundedCornerShape(0.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant, androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
                         .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -1022,7 +1025,7 @@ private fun FoodConfirmationDialog(
                         Icon(
                             imageVector = Icons.Default.Science,
                             contentDescription = null,
-                            tint = Color.Black,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -1030,13 +1033,13 @@ private fun FoodConfirmationDialog(
                             text = "Micronutrients",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Icon(
                         imageVector = if (showMicronutrients) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                         contentDescription = null,
-                        tint = Color.Gray,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1048,14 +1051,14 @@ private fun FoodConfirmationDialog(
                 ) {
                     Column(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
                         val microRows = listOf(
-                            Triple("Fiber",      "${totalFiber.roundToInt()}g",     Color.DarkGray),
-                            Triple("Sugar",      "${totalSugar.roundToInt()}g",     Color.Black),
-                            Triple("Sodium",     "${totalSodium.roundToInt()}mg",   Color.Gray),
-                            Triple("Potassium",  "${totalPotassium.roundToInt()}mg",Color.DarkGray),
-                            Triple("Calcium",    "${totalCalcium.roundToInt()}mg",  Color.Black),
-                            Triple("Iron",       "${totalIron.roundToInt()}mg",     Color.Gray),
-                            Triple("Vitamin C",  "${totalVitaminC.roundToInt()}mg", Color.DarkGray),
-                            Triple("Vitamin D",  "${totalVitaminD.roundToInt()}µg", Color.Black)
+                            Triple("Fiber",      "${totalFiber.roundToInt()}g",     PrimaryTeal),
+                            Triple("Sugar",      "${totalSugar.roundToInt()}g",     CoralPrimary),
+                            Triple("Sodium",     "${totalSodium.roundToInt()}mg",   AccentGold),
+                            Triple("Potassium",  "${totalPotassium.roundToInt()}mg",SkyBlue),
+                            Triple("Calcium",    "${totalCalcium.roundToInt()}mg",  PrimaryTeal),
+                            Triple("Iron",       "${totalIron.roundToInt()}mg",     CoralPrimary),
+                            Triple("Vitamin C",  "${totalVitaminC.roundToInt()}mg", AccentGold),
+                            Triple("Vitamin D",  "${totalVitaminD.roundToInt()}µg", SkyBlue)
                         )
                         microRows.chunked(2).forEach { pair ->
                             Row(
@@ -1075,7 +1078,7 @@ private fun FoodConfirmationDialog(
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Column {
-                                            Text(label, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = Color(0xFF475569)) // Slate 600
+                                            Text(label, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                             Spacer(modifier = Modifier.height(2.dp))
                                             Text(value, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = color)
                                         }
@@ -1181,7 +1184,7 @@ private fun BookmarkBottomSheet(
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
             ) {
         Column(
             modifier = Modifier
@@ -1200,7 +1203,7 @@ private fun BookmarkBottomSheet(
                         text = "Saved Meals",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "Tap \"Log Now\" to instantly add to today",
@@ -1293,7 +1296,7 @@ private fun BookmarkCard(
                         text = bookmark.name,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
@@ -1344,7 +1347,7 @@ private fun FoodItemConfirmRow(
                     text = item.name,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = item.servingSize,
@@ -1385,7 +1388,7 @@ private fun FoodItemDetailRow(
             text = name,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -1401,13 +1404,13 @@ private fun FoodItemDetailRow(
 private fun MacroBadge(label: String, value: String) {
     Box(
         modifier = Modifier
-            .background(color = Color(0xFFF2F2F2), )
+            .background(color = MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp))
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Text(
             text = "$label: $value",
             fontSize = 11.sp,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -1418,14 +1421,14 @@ private fun TotalsColumnItem(title: String, value: String) {
         Text(
             text = title,
             fontSize = 11.sp,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = value,
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -1449,7 +1452,7 @@ private fun MicronutrientsCard(meals: List<Meal>) {
 
     Card(
                         modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
+                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
@@ -1480,7 +1483,7 @@ private fun MicronutrientsCard(meals: List<Meal>) {
                         text = "Micronutrients",
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
-                        color = Color(0xFF1E293B) // Slate 800
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Icon(

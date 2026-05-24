@@ -42,10 +42,10 @@ fun StreakScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFFAFAFA))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
-        containerColor = Color(0xFFFAFAFA)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -60,7 +60,7 @@ fun StreakScreen(
             Card(
             modifier = Modifier.fillMaxWidth(),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 
             ) {
                 Column(
@@ -72,7 +72,7 @@ fun StreakScreen(
                     Text(
                         text = "Logged Days",
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.DarkGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -90,17 +90,17 @@ fun StreakScreen(
                                 text = "$currentStreak",
                                 fontSize = 32.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.Black
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "Current Streak",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         VerticalDivider(
                             modifier = Modifier.height(40.dp),
-                            color = Color(0xFFEEEEEE)
+                            color = MaterialTheme.colorScheme.outlineVariant
                         )
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -110,12 +110,12 @@ fun StreakScreen(
                                 text = "$longestStreak",
                                 fontSize = 32.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.Black
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "Longest Streak",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -126,7 +126,7 @@ fun StreakScreen(
             Card(
             modifier = Modifier.fillMaxWidth(),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 
             ) {
                 Column(
@@ -138,7 +138,7 @@ fun StreakScreen(
                     Text(
                         text = "Current Week",
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.DarkGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -220,14 +220,14 @@ fun StreakScreen(
                                     text = day.dayNum,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = textColor.takeUnless { it == Color.Gray } ?: (if (day.isSelected) Color.Black else Color.LightGray)
+                                    color = textColor.takeUnless { it == Color.Gray } ?: (if (day.isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline)
                                 )
                             }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = Color(0xFFEEEEEE))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Above budget / Avg Calories Row
@@ -249,13 +249,13 @@ fun StreakScreen(
                             Text(
                                 text = "Calories Above\nBudget",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
                         }
                         VerticalDivider(
                             modifier = Modifier.height(50.dp),
-                            color = Color(0xFFEEEEEE)
+                            color = MaterialTheme.colorScheme.outlineVariant
                         )
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -265,19 +265,19 @@ fun StreakScreen(
                                 text = "$averageCalories",
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.Black
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "Average Calories",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
                         }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = Color(0xFFEEEEEE))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Current Weight
@@ -286,17 +286,17 @@ fun StreakScreen(
                             text = "$currentWeightKg kg",
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Current Weight",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = Color(0xFFEEEEEE))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // View Weekly Summary Button

@@ -121,7 +121,7 @@ fun App(
                     drawerContent = {
                         ModalDrawerSheet(
                             modifier = Modifier.width(300.dp),
-                            drawerContainerColor = Color.White
+                            drawerContainerColor = MaterialTheme.colorScheme.surface
                         ) {
                             Column(
                                 modifier = Modifier
@@ -155,7 +155,7 @@ fun App(
                                         text = "Journable",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 20.sp,
-                                        color = Color.Black
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
 
@@ -174,8 +174,8 @@ fun App(
 
                                 menuItems.forEach { item ->
                                     NavigationDrawerItem(
-                                        icon = { Icon(item.icon, contentDescription = item.label, tint = Color.DarkGray) },
-                                        label = { Text(item.label, color = Color.Black, fontWeight = FontWeight.Medium) },
+                                        icon = { Icon(item.icon, contentDescription = item.label, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                        label = { Text(item.label, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium) },
                                         selected = false,
                                         onClick = {
                                             scope.launch { drawerState.close() }
@@ -191,8 +191,8 @@ fun App(
                                 Spacer(modifier = Modifier.weight(1f))
 
                                 NavigationDrawerItem(
-                                    icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout", tint = Color.DarkGray) },
-                                    label = { Text("Logout", color = Color.Black, fontWeight = FontWeight.Medium) },
+                                    icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout", tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                    label = { Text("Logout", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium) },
                                     selected = false,
                                     onClick = {
                                         scope.launch { drawerState.close() }
