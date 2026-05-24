@@ -107,7 +107,7 @@ class CalorieApiClient(
         httpClient.post("$baseUrl/api/v1/ai/analyze-text") {
             withAuth()
             contentType(ContentType.Application.Json)
-            setBody(mapOf("text" to text))
+            setBody(com.calorie.tracker.model.AnalyzeTextRequest(query = text))
         }.body<AnalyzeTextResponse>()
     }
 

@@ -311,7 +311,7 @@ fun DashboardScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp),
-                                        colors = TextFieldDefaults.colors(
+                    colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -1140,6 +1140,8 @@ private fun FoodConfirmationDialog(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                                                 colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
                             focusedBorderColor = Color(0xFF1976D2),
                             unfocusedBorderColor = Color(0xFFDDDDDD)
                         )

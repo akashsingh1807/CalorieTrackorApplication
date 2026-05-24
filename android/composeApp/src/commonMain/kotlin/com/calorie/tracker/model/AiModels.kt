@@ -23,7 +23,7 @@ data class FoodItemDto(
 
 @Serializable
 data class AnalyzeTextRequest(
-    val text: String
+    val query: String
 )
 
 @Serializable
