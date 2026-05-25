@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class GeminiVisionService {
@@ -203,18 +205,40 @@ public class GeminiVisionService {
 
         String normalizedQuery = text.trim().toLowerCase();
         String personaStr = (persona != null ? persona.trim().toUpperCase() : "NONE");
-        String cacheKey = personaStr + ":" + normalizedQuery;
 
+        ParsedFood parsed = parseFoodQuery(normalizedQuery);
+        String scaledCacheKey = personaStr + ":scaled:" + parsed.baseFood + ":" + parsed.unit;
+        String exactCacheKey = personaStr + ":exact:" + normalizedQuery;
+
+        // 1. Try scaled cache (for single items)
+        if (parsed.isValid()) {
+            try {
+                var cached = foodAnalysisCacheRepository.findByQueryKey(scaledCacheKey);
+                if (cached.isPresent()) {
+                    logger.info("Scaled cache hit for key: {}. Scaling by factor: {}", scaledCacheKey, parsed.quantity);
+                    List<FoodItemDto> baseItems = objectMapper.readValue(cached.get().getResponseJson(), new TypeReference<List<FoodItemDto>>() {});
+                    if (baseItems.size() == 1) {
+                        FoodItemDto scaledItem = scaleFoodItem(baseItems.get(0), parsed.quantity, parsed.quantity, parsed.unit);
+                        return List.of(scaledItem);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Error reading scaled cache for key {}: {}", scaledCacheKey, e.getMessage(), e);
+            }
+        }
+
+        // 2. Try exact cache
         try {
-            var cached = foodAnalysisCacheRepository.findByQueryKey(cacheKey);
+            var cached = foodAnalysisCacheRepository.findByQueryKey(exactCacheKey);
             if (cached.isPresent()) {
-                logger.info("Cache hit for key: {}. Returning cached food analysis.", cacheKey);
+                logger.info("Exact cache hit for key: {}.", exactCacheKey);
                 return objectMapper.readValue(cached.get().getResponseJson(), new TypeReference<List<FoodItemDto>>() {});
             }
         } catch (Exception e) {
-            logger.error("Error reading from food analysis cache for key {}: {}", cacheKey, e.getMessage(), e);
+            logger.error("Error reading exact cache for key {}: {}", exactCacheKey, e.getMessage(), e);
         }
 
+        // Cache miss -> call AI
         logAiRequest(userId, "TEXT_ANALYSIS", text.length() / 2);
         
         String personaInstructions = "";
@@ -260,17 +284,35 @@ public class GeminiVisionService {
             List<FoodItemDto> result = callGeminiApi(requestBody);
             
             if (result != null && !result.isEmpty()) {
+                // Save to exact cache
                 try {
                     String jsonResponse = objectMapper.writeValueAsString(result);
                     FoodAnalysisCache cacheEntry = FoodAnalysisCache.builder()
-                            .queryKey(cacheKey)
+                            .queryKey(exactCacheKey)
                             .responseJson(jsonResponse)
                             .createdAt(LocalDateTime.now())
                             .build();
                     foodAnalysisCacheRepository.save(cacheEntry);
-                    logger.info("Saved search result to cache for key: {}", cacheKey);
+                    logger.info("Saved exact search result to cache for key: {}", exactCacheKey);
                 } catch (Exception e) {
-                    logger.error("Failed to write to food analysis cache for key {}: {}", cacheKey, e.getMessage(), e);
+                    logger.error("Failed to write to exact cache for key {}: {}", exactCacheKey, e.getMessage(), e);
+                }
+
+                // Save to scaled cache if single item response
+                if (result.size() == 1 && parsed.isValid() && parsed.quantity > 0) {
+                    try {
+                        FoodItemDto baseItem = scaleFoodItem(result.get(0), 1.0 / parsed.quantity, 1.0, parsed.unit);
+                        String baseJsonResponse = objectMapper.writeValueAsString(List.of(baseItem));
+                        FoodAnalysisCache baseCacheEntry = FoodAnalysisCache.builder()
+                                .queryKey(scaledCacheKey)
+                                .responseJson(baseJsonResponse)
+                                .createdAt(LocalDateTime.now())
+                                .build();
+                        foodAnalysisCacheRepository.save(baseCacheEntry);
+                        logger.info("Saved scaled (1.0) search result to cache for key: {}", scaledCacheKey);
+                    } catch (Exception e) {
+                        logger.error("Failed to write to scaled cache for key {}: {}", scaledCacheKey, e.getMessage(), e);
+                    }
                 }
             }
             return result;
@@ -278,6 +320,143 @@ public class GeminiVisionService {
             logger.error("Gemini Text API preparation failed: {}", e.getMessage());
             return new ArrayList<>();
         }
+    }
+
+    private static class ParsedFood {
+        final String baseFood;
+        final double quantity;
+        final String unit;
+
+        ParsedFood(String baseFood, double quantity, String unit) {
+            this.baseFood = baseFood;
+            this.quantity = quantity;
+            this.unit = unit;
+        }
+
+        boolean isValid() {
+            return baseFood != null && !baseFood.isEmpty() && quantity > 0;
+        }
+    }
+
+    private static String normalizeBaseFood(String food) {
+        if (food == null) return "";
+        food = food.trim().toLowerCase();
+        food = food.replaceAll("^(of|fresh|organic|cooked|raw)\\s+", "");
+        if (food.endsWith("es")) {
+            if (food.endsWith("potatoes") || food.endsWith("tomatoes") || food.endsWith("mangoes")) {
+                return food.substring(0, food.length() - 2);
+            }
+        }
+        if (food.endsWith("s")) {
+            if (!food.endsWith("ss") && !food.endsWith("us") && !food.endsWith("is") && !food.endsWith("as")) {
+                return food.substring(0, food.length() - 1);
+            }
+        }
+        return food;
+    }
+
+    private static double parseDoubleOrFraction(String val) {
+        if (val == null || val.isEmpty()) return 1.0;
+        if (val.contains("/")) {
+            String[] parts = val.split("/");
+            if (parts.length == 2) {
+                try {
+                    double num = Double.parseDouble(parts[0]);
+                    double den = Double.parseDouble(parts[1]);
+                    if (den != 0) return num / den;
+                } catch (NumberFormatException e) {
+                    // ignore
+                }
+            }
+        }
+        try {
+            return Double.parseDouble(val);
+        } catch (NumberFormatException e) {
+            return 1.0;
+        }
+    }
+
+    private static String normalizeUnit(String unit) {
+        if (unit == null || unit.isEmpty()) return "piece";
+        unit = unit.toLowerCase().trim();
+        if (unit.startsWith("g") || unit.startsWith("gm")) return "g";
+        if (unit.startsWith("kg") || unit.startsWith("kilo")) return "kg";
+        if (unit.startsWith("ml") || unit.startsWith("milli")) return "ml";
+        if (unit.startsWith("cup")) return "cup";
+        if (unit.startsWith("piece") || unit.equals("pc") || unit.equals("pcs")) return "piece";
+        if (unit.startsWith("plate")) return "plate";
+        if (unit.startsWith("bowl")) return "bowl";
+        if (unit.startsWith("glass")) return "glass";
+        return "piece";
+    }
+
+    private static ParsedFood parseFoodQuery(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return new ParsedFood("", 1.0, "piece");
+        }
+        query = query.trim().toLowerCase();
+
+        Pattern startPattern = Pattern.compile("^(\\d+(?:\\.\\d+)?|\\d+/\\d+)\\s*(g|gm|grams?|kg|kilos?|kilograms?|ml|milliliters?|cups?|plates?|pcs?|pieces?|bowls?|glasses?|servings?)?\\s*(?:of\\s+)?(.*)$");
+        Matcher startMatcher = startPattern.matcher(query);
+        if (startMatcher.matches()) {
+            double qty = parseDoubleOrFraction(startMatcher.group(1));
+            String unitRaw = startMatcher.group(2);
+            String food = startMatcher.group(3);
+            if (food != null && !food.trim().isEmpty()) {
+                return new ParsedFood(normalizeBaseFood(food), qty, normalizeUnit(unitRaw));
+            }
+        }
+
+        Pattern endPattern = Pattern.compile("^(.*?)\\s+(\\d+(?:\\.\\d+)?|\\d+/\\d+)\\s*(g|gm|grams?|kg|kilos?|kilograms?|ml|milliliters?|cups?|plates?|pcs?|pieces?|bowls?|glasses?|servings?)?$");
+        Matcher endMatcher = endPattern.matcher(query);
+        if (endMatcher.matches()) {
+            String food = endMatcher.group(1);
+            double qty = parseDoubleOrFraction(endMatcher.group(2));
+            String unitRaw = endMatcher.group(3);
+            if (food != null && !food.trim().isEmpty()) {
+                return new ParsedFood(normalizeBaseFood(food), qty, normalizeUnit(unitRaw));
+            }
+        }
+
+        return new ParsedFood(normalizeBaseFood(query), 1.0, "piece");
+    }
+
+    private FoodItemDto scaleFoodItem(FoodItemDto item, double factor, double requestedQty, String requestedUnit) {
+        FoodItemDto scaled = new FoodItemDto();
+        String nameWithoutParens = item.getName().replaceAll("\\s*\\(.*\\)", "");
+        scaled.setName(capitalize(nameWithoutParens) + " (" + formatQuantity(requestedQty) + requestedUnit + ")");
+        scaled.setServingSize(formatQuantity(requestedQty) + requestedUnit);
+        scaled.setCalories(round(item.getCalories() * factor));
+        scaled.setProtein(round(item.getProtein() * factor));
+        scaled.setCarbs(round(item.getCarbs() * factor));
+        scaled.setFat(round(item.getFat() * factor));
+        scaled.setFiber(item.getFiber() != null ? round(item.getFiber() * factor) : 0.0);
+        scaled.setSugar(item.getSugar() != null ? round(item.getSugar() * factor) : 0.0);
+        scaled.setSodium(item.getSodium() != null ? round(item.getSodium() * factor) : 0.0);
+        scaled.setPotassium(item.getPotassium() != null ? round(item.getPotassium() * factor) : 0.0);
+        scaled.setCalcium(item.getCalcium() != null ? round(item.getCalcium() * factor) : 0.0);
+        scaled.setIron(item.getIron() != null ? round(item.getIron() * factor) : 0.0);
+        scaled.setVitaminC(item.getVitaminC() != null ? round(item.getVitaminC() * factor) : 0.0);
+        scaled.setVitaminD(item.getVitaminD() != null ? round(item.getVitaminD() * factor) : 0.0);
+        return scaled;
+    }
+
+    private String capitalize(String str) {
+        if (str == null || str.isEmpty()) return "";
+        str = str.trim();
+        return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+    }
+
+    private String formatQuantity(double qty) {
+        if (qty == (long) qty) {
+            return String.format("%d", (long) qty);
+        } else {
+            return String.format("%.2f", qty).replaceAll("0+$", "").replaceAll("\\.$", "");
+        }
+    }
+
+    private double round(double val) {
+        return Math.round(val * 100.0) / 100.0;
     }
 
     public List<String> getMealSuggestions(Long userId, String goal) {
