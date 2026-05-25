@@ -18,12 +18,26 @@ public class FoodAnalysisCacheSeeder {
     @Autowired
     private FoodAnalysisCacheRepository foodAnalysisCacheRepository;
 
+    @Autowired
+    private javax.sql.DataSource dataSource;
+
     private static final String[] PERSONAS = {"NONE", "STRICT_TRAINER", "INDIAN_MOM"};
 
     @PostConstruct
     public void seedCache() {
         try {
             logger.info("Initializing INDB & Kaggle Indian Food cache seeding...");
+
+            if (foodAnalysisCacheRepository.count() == 0) {
+                logger.info("Database cache is empty. Loading merged food inserts from resource file...");
+                org.springframework.jdbc.datasource.init.ResourceDatabasePopulator populator = 
+                    new org.springframework.jdbc.datasource.init.ResourceDatabasePopulator();
+                populator.addScript(new org.springframework.core.io.ClassPathResource("merged_food_inserts.sql"));
+                populator.execute(dataSource);
+                logger.info("Successfully loaded merged food inserts into database!");
+            } else {
+                logger.info("Database cache already contains records. Skipping merged food inserts loading.");
+            }
 
             // 1. Roti / Chapati (piece)
             seedItem("roti", "piece", "[{\"name\":\"Roti\",\"calories\":75.0,\"servingSize\":\"1 piece\",\"protein\":2.6,\"carbs\":15.0,\"fat\":0.4,\"fiber\":2.2,\"sugar\":0.1,\"sodium\":2.0,\"potassium\":45.0,\"calcium\":10.0,\"iron\":0.8,\"vitaminC\":0.0,\"vitaminD\":0.0}]");
