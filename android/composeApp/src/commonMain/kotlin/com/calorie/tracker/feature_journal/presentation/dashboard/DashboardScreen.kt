@@ -72,6 +72,7 @@ fun DashboardScreen(
     val analysisState by viewModel.analysisState.collectAsState()
     val bookmarks by viewModel.bookmarks.collectAsState()
     val feedbackMessage by viewModel.feedbackMessage.collectAsState()
+    val currentStreak by viewModel.streak.collectAsState()
 
     val focusManager = LocalFocusManager.current
     var queryText by remember { mutableStateOf("") }
@@ -167,7 +168,7 @@ fun DashboardScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        CircularProgressIndicator(color = Color(0xFF1976D2))
+                        CircularProgressIndicator(color = Color.Black)
                         Text(
                             text = "Analyzing your food...",
                             fontWeight = FontWeight.Medium,
@@ -275,7 +276,7 @@ fun DashboardScreen(
                         )
                         Spacer(modifier = Modifier.width(2.dp))
                         Text(
-                            text = "27",
+                            text = "$currentStreak",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -332,7 +333,7 @@ fun DashboardScreen(
                     trailingIcon = {
                         if (queryText.isNotBlank()) {
                             IconButton(onClick = { submitMealText(queryText) }) {
-                                Icon(Icons.Default.Send, contentDescription = "Send", tint = Color(0xFF1976D2))
+                                Icon(Icons.Default.Send, contentDescription = "Send", tint = MaterialTheme.colorScheme.onSurface)
                             }
                         }
                     }
@@ -348,7 +349,7 @@ fun DashboardScreen(
                         Icon(
                             imageVector = if (bookmarks.isNotEmpty()) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                             contentDescription = "Saved Meals",
-                            tint = if (bookmarks.isNotEmpty()) Color(0xFF1976D2) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = if (bookmarks.isNotEmpty()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -372,7 +373,7 @@ fun DashboardScreen(
                         Icon(
                             imageVector = Icons.Default.Mic,
                             contentDescription = "Voice Input",
-                            tint = Color(0xFF1976D2),
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -409,9 +410,9 @@ fun DashboardScreen(
                         }
                         val dayNum = date.dayOfMonth.toString()
 
-                        val bgColor = if (isLogged) Color(0xFFFFF1F0) else Color.Transparent
+                        val bgColor = if (isLogged) Color(0xFFEEEEEE) else Color.Transparent
                         val borderColor = if (isSelected) {
-                            if (isLogged) Color(0xFFD32F2F) else MaterialTheme.colorScheme.onBackground
+                            MaterialTheme.colorScheme.onBackground
                         } else {
                             Color.Transparent
                         }
@@ -438,14 +439,14 @@ fun DashboardScreen(
                             Text(
                                 text = dayName,
                                 fontSize = 11.sp,
-                                color = if (isLogged) Color(0xFFD32F2F) else Color.Gray
+                                color = if (isLogged) MaterialTheme.colorScheme.onBackground else Color.Gray
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = dayNum,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isLogged) Color(0xFFD32F2F) else MaterialTheme.colorScheme.onBackground
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
@@ -460,13 +461,13 @@ fun DashboardScreen(
                 ) {
                     // Calories Card
                     Card(
-                        modifier = Modifier.weight(1f).height(105.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray)
+                        modifier = Modifier.weight(1f).wrapContentHeight(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
                         Column(
-                            modifier = Modifier.fillMaxSize().padding(12.dp),
-                            verticalArrangement = Arrangement.SpaceBetween
+                            modifier = Modifier.fillMaxWidth().wrapContentHeight().padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -520,13 +521,13 @@ fun DashboardScreen(
 
                     // Macros Card
                     Card(
-                        modifier = Modifier.weight(1f).height(105.dp),
+                        modifier = Modifier.weight(1f).wrapContentHeight(),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
                         Column(
-                            modifier = Modifier.fillMaxSize().padding(12.dp),
-                            verticalArrangement = Arrangement.SpaceBetween
+                            modifier = Modifier.fillMaxWidth().wrapContentHeight().padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -718,8 +719,8 @@ fun DashboardScreen(
                                         LinearProgressIndicator(
                                             progress = { 0.10f },
                                             modifier = Modifier.fillMaxWidth().height(4.dp),
-                                            color = Color(0xFF1976D2),
-                                            trackColor = Color(0xFFE3F2FD)
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            trackColor = MaterialTheme.colorScheme.outlineVariant
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text("10%", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -731,8 +732,8 @@ fun DashboardScreen(
                                         LinearProgressIndicator(
                                             progress = { 0.12f },
                                             modifier = Modifier.fillMaxWidth().height(4.dp),
-                                            color = Color(0xFF1976D2),
-                                            trackColor = Color(0xFFE3F2FD)
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            trackColor = MaterialTheme.colorScheme.outlineVariant
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text("12%", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -744,8 +745,8 @@ fun DashboardScreen(
                                         LinearProgressIndicator(
                                             progress = { 0.05f },
                                             modifier = Modifier.fillMaxWidth().height(4.dp),
-                                            color = Color(0xFF1976D2),
-                                            trackColor = Color(0xFFE3F2FD)
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            trackColor = MaterialTheme.colorScheme.outlineVariant
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text("5%", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -757,8 +758,8 @@ fun DashboardScreen(
                                         LinearProgressIndicator(
                                             progress = { 0.20f },
                                             modifier = Modifier.fillMaxWidth().height(4.dp),
-                                            color = Color(0xFF1976D2),
-                                            trackColor = Color(0xFFE3F2FD)
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            trackColor = MaterialTheme.colorScheme.outlineVariant
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text("20%", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -894,7 +895,7 @@ fun DashboardScreen(
                                             Icon(
                                                 imageVector = Icons.Default.BookmarkBorder,
                                                 contentDescription = "Save meal",
-                                                tint = Color(0xFF1976D2),
+                                                tint = Color.Black,
                                                 modifier = Modifier.size(18.dp)
                                             )
                                         }
@@ -1098,7 +1099,7 @@ private fun FoodConfirmationDialog(
                         .fillMaxWidth()
                         .clickable { saveAsBookmark = !saveAsBookmark }
                         .background(
-                            if (saveAsBookmark) Color(0xFFEAF1FB) else Color.Transparent,
+                            if (saveAsBookmark) Color(0xFFEEEEEE) else Color.Transparent,
                             androidx.compose.foundation.shape.RoundedCornerShape(0.dp)
                         )
                         .padding(horizontal = 8.dp, vertical = 6.dp),
@@ -1109,14 +1110,14 @@ private fun FoodConfirmationDialog(
                         Icon(
                             imageVector = if (saveAsBookmark) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                             contentDescription = null,
-                            tint = if (saveAsBookmark) Color(0xFF1976D2) else Color.Gray,
+                            tint = if (saveAsBookmark) Color.Black else Color.Gray,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Save as bookmark",
                             fontSize = 13.sp,
-                            color = if (saveAsBookmark) Color(0xFF1976D2) else Color.Gray,
+                            color = if (saveAsBookmark) Color.Black else Color.Gray,
                             fontWeight = if (saveAsBookmark) FontWeight.SemiBold else FontWeight.Normal
                         )
                     }
@@ -1125,7 +1126,7 @@ private fun FoodConfirmationDialog(
                         onCheckedChange = { saveAsBookmark = it },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
-                            checkedTrackColor = Color(0xFF1976D2)
+                            checkedTrackColor = Color.Black
                         )
                     )
                 }
@@ -1142,7 +1143,7 @@ private fun FoodConfirmationDialog(
                                                 colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.Black,
                             unfocusedTextColor = Color.Black,
-                            focusedBorderColor = Color(0xFF1976D2),
+                            focusedBorderColor = Color.Black,
                             unfocusedBorderColor = Color(0xFFDDDDDD)
                         )
                     )
@@ -1216,7 +1217,7 @@ private fun BookmarkBottomSheet(
                 Icon(
                     imageVector = Icons.Default.Bookmark,
                     contentDescription = null,
-                    tint = Color(0xFF1976D2),
+                    tint = Color.Black,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -1276,7 +1277,7 @@ private fun BookmarkCard(
 ) {
     Card(
                         modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F8FF)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
     ) {
         Row(
             modifier = Modifier
@@ -1290,7 +1291,7 @@ private fun BookmarkCard(
                     Icon(
                         imageVector = Icons.Default.Bookmark,
                         contentDescription = null,
-                        tint = Color(0xFF1976D2),
+                        tint = Color.Black,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
@@ -1324,7 +1325,7 @@ private fun BookmarkCard(
                     Icon(
                         imageVector = Icons.Default.DeleteOutline,
                         contentDescription = "Remove bookmark",
-                        tint = Color(0xFFE53935),
+                        tint = Color.DarkGray,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -1362,7 +1363,7 @@ private fun FoodItemConfirmRow(
                     text = "${item.calories.roundToInt()} kcal",
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = Color(0xFF1976D2)
+                    color = Color.Black
                 )
             }
         }
@@ -1470,13 +1471,13 @@ private fun MicronutrientsCard(meals: List<Meal>) {
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .background(Color(0xFFF5F3FF), androidx.compose.foundation.shape.CircleShape),
+                            .background(Color(0xFFEEEEEE), androidx.compose.foundation.shape.CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Science,
                             contentDescription = null,
-                            tint = Color(0xFF7C3AED), // Rich violet
+                            tint = Color.Black,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -1491,7 +1492,7 @@ private fun MicronutrientsCard(meals: List<Meal>) {
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = null,
-                    tint = Color(0xFF94A3B8), // Slate 400
+                    tint = Color.Gray,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -1511,14 +1512,14 @@ private fun MicronutrientsCard(meals: List<Meal>) {
                     )
 
                     val microItems = listOf(
-                        MicroItem("Fiber",     fiber,     25.0,   "g",  Color(0xFF059669)), // Emerald
-                        MicroItem("Sugar",     sugar,     25.0,   "g",  Color(0xFFE11D48)), // Rose
-                        MicroItem("Sodium",    sodium,    2300.0, "mg", Color(0xFF4F46E5)), // Indigo
-                        MicroItem("Potassium", potassium, 3500.0, "mg", Color(0xFF7C3AED)), // Violet
-                        MicroItem("Calcium",   calcium,   1000.0, "mg", Color(0xFF0D9488)), // Teal
-                        MicroItem("Iron",      iron,      18.0,   "mg", Color(0xFFEA580C)), // Orange
-                        MicroItem("Vitamin C", vitaminC,  90.0,   "mg", Color(0xFFD97706)), // Amber
-                        MicroItem("Vitamin D", vitaminD,  20.0,   "µg", Color(0xFF0284C7))  // Sky Blue
+                        MicroItem("Fiber",     fiber,     25.0,   "g",  Color.Black),
+                        MicroItem("Sugar",     sugar,     25.0,   "g",  Color.Black),
+                        MicroItem("Sodium",    sodium,    2300.0, "mg", Color.Black),
+                        MicroItem("Potassium", potassium, 3500.0, "mg", Color.Black),
+                        MicroItem("Calcium",   calcium,   1000.0, "mg", Color.Black),
+                        MicroItem("Iron",      iron,      18.0,   "mg", Color.Black),
+                        MicroItem("Vitamin C", vitaminC,  90.0,   "mg", Color.Black),
+                        MicroItem("Vitamin D", vitaminD,  20.0,   "µg", Color.Black)
                     )
 
                     microItems.forEachIndexed { idx, item ->
@@ -1545,7 +1546,7 @@ private fun MicronutrientsCard(meals: List<Meal>) {
                                         text = item.label,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = Color(0xFF475569) // Slate 600
+                                        color = Color.Black
                                     )
                                     Text(
                                         text = "${"%.1f".format(item.value)}${item.unit}  •  $pct% RDI",

@@ -99,13 +99,13 @@ fun DailyGoalsScreen(
                 Icon(
                     imageVector = Icons.Default.Calculate,
                     contentDescription = "Calculator",
-                    tint = Color(0xFF1976D2),
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Use daily calorie goal calculator",
-                    color = Color(0xFF1976D2),
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
                 )
             }
@@ -162,7 +162,7 @@ fun DailyGoalsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Warning: Total percentage is $totalPct% (must be 100%)",
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodySmall
                 )
             }

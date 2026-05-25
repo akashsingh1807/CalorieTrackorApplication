@@ -63,6 +63,10 @@ fun App(
     var carbsGoalPct by remember { mutableStateOf(45) }
     var proteinGoalPct by remember { mutableStateOf(43) }
     var fatGoalPct by remember { mutableStateOf(12) }
+    var userWeight by remember { mutableStateOf(70.0) }
+
+    val streak by dashboardViewModel.streak.collectAsState()
+    val longestStreak by dashboardViewModel.longestStreak.collectAsState()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -82,6 +86,7 @@ fun App(
                     carbsGoalPct = profile.dailyCarbsGoal
                     proteinGoalPct = profile.dailyProteinGoal
                     fatGoalPct = profile.dailyFatGoal
+                    userWeight = profile.weight
                     hasCompletedOnboarding = true
                 } else {
                     // Profile height is 0.0 but onboarding completed locally
@@ -138,14 +143,14 @@ fun App(
                                         modifier = Modifier
                                             .size(40.dp)
                                             .background(
-                                                color = Color(0xFF1976D2),
+                                                color = MaterialTheme.colorScheme.onBackground,
                                                 shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp)
                                             ),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = "J",
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.background,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 22.sp
                                         )
@@ -246,6 +251,7 @@ fun App(
                                             carbsGoalPct = 50
                                             proteinGoalPct = 30
                                             fatGoalPct = 20
+                                            userWeight = weight
                                             currentScreen = Screen.Dashboard
                                         } else {
                                             println("CalorieApp: updateProfile failed with error: ${result?.exceptionOrNull()?.message}")
@@ -255,6 +261,7 @@ fun App(
                                             carbsGoalPct = 50
                                             proteinGoalPct = 30
                                             fatGoalPct = 20
+                                            userWeight = weight
                                             currentScreen = Screen.Dashboard
                                         }
                                     }
@@ -294,6 +301,14 @@ fun App(
                                     carbsGoalPct = carbs
                                     proteinGoalPct = prot
                                     fatGoalPct = fat
+                                    scope.launch {
+                                        apiClient?.updateProfile(com.calorie.tracker.model.UpdateProfileRequest(
+                                            dailyCalorieGoal = cal,
+                                            dailyCarbsGoal = carbs,
+                                            dailyProteinGoal = prot,
+                                            dailyFatGoal = fat
+                                        ))
+                                    }
                                 },
                                 onCalculatorClick = {
                                     currentScreen = Screen.Onboarding
@@ -302,6 +317,9 @@ fun App(
                         }
                         is Screen.Streak -> {
                             StreakScreen(
+                                currentStreak = streak,
+                                longestStreak = longestStreak,
+                                currentWeightKg = userWeight.toInt(),
                                 mealRepository = mealRepository,
                                 budgetCalorie = calorieGoal,
                                 onBackClick = { currentScreen = Screen.Dashboard }
