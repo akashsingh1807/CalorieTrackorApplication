@@ -620,9 +620,7 @@ fun DashboardScreen(
 
             // ── Micronutrients card (daily totals) ────────────────────────────
             item {
-                if (meals.isNotEmpty()) {
-                    MicronutrientsCard(meals = meals)
-                }
+                MicronutrientsCard(meals = meals)
             }
 
             // Water Tracker Card
@@ -1471,13 +1469,13 @@ private fun MicronutrientsCard(meals: List<Meal>) {
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .background(Color(0xFFEEEEEE), androidx.compose.foundation.shape.CircleShape),
+                            .background(MaterialTheme.colorScheme.surfaceVariant, androidx.compose.foundation.shape.CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Science,
                             contentDescription = null,
-                            tint = Color.Black,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -1492,7 +1490,7 @@ private fun MicronutrientsCard(meals: List<Meal>) {
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = null,
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -1502,6 +1500,7 @@ private fun MicronutrientsCard(meals: List<Meal>) {
                 enter = expandVertically(),
                 exit = shrinkVertically()
             ) {
+                val textColor = MaterialTheme.colorScheme.onSurface
                 Column(modifier = Modifier.fillMaxWidth().padding(top = 18.dp)) {
                     data class MicroItem(
                         val label: String,
@@ -1512,14 +1511,14 @@ private fun MicronutrientsCard(meals: List<Meal>) {
                     )
 
                     val microItems = listOf(
-                        MicroItem("Fiber",     fiber,     25.0,   "g",  Color.Black),
-                        MicroItem("Sugar",     sugar,     25.0,   "g",  Color.Black),
-                        MicroItem("Sodium",    sodium,    2300.0, "mg", Color.Black),
-                        MicroItem("Potassium", potassium, 3500.0, "mg", Color.Black),
-                        MicroItem("Calcium",   calcium,   1000.0, "mg", Color.Black),
-                        MicroItem("Iron",      iron,      18.0,   "mg", Color.Black),
-                        MicroItem("Vitamin C", vitaminC,  90.0,   "mg", Color.Black),
-                        MicroItem("Vitamin D", vitaminD,  20.0,   "µg", Color.Black)
+                        MicroItem("Fiber",     fiber,     25.0,   "g",  textColor),
+                        MicroItem("Sugar",     sugar,     25.0,   "g",  textColor),
+                        MicroItem("Sodium",    sodium,    2300.0, "mg", textColor),
+                        MicroItem("Potassium", potassium, 3500.0, "mg", textColor),
+                        MicroItem("Calcium",   calcium,   1000.0, "mg", textColor),
+                        MicroItem("Iron",      iron,      18.0,   "mg", textColor),
+                        MicroItem("Vitamin C", vitaminC,  90.0,   "mg", textColor),
+                        MicroItem("Vitamin D", vitaminD,  20.0,   "µg", textColor)
                     )
 
                     microItems.forEachIndexed { idx, item ->
@@ -1546,7 +1545,7 @@ private fun MicronutrientsCard(meals: List<Meal>) {
                                         text = item.label,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = Color.Black
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
                                         text = "${"%.1f".format(item.value)}${item.unit}  •  $pct% RDI",

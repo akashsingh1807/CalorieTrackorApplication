@@ -74,21 +74,30 @@ fun OnboardingScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Flip7TextField(
                         value = age,
-                        onValueChange = { age = it.filter { char -> char.isDigit() } },
+                        onValueChange = {
+                            age = it.filter { char -> char.isDigit() }
+                            calculatedCalories = null
+                        },
                         label = "Age (Years)",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                     
                     Flip7TextField(
                         value = height,
-                        onValueChange = { height = it },
+                        onValueChange = {
+                            height = it
+                            calculatedCalories = null
+                        },
                         label = "Height (cm)",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                     )
                     
                     Flip7TextField(
                         value = weight,
-                        onValueChange = { weight = it },
+                        onValueChange = {
+                            weight = it
+                            calculatedCalories = null
+                        },
                         label = "Weight (kg)",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                     )
@@ -126,6 +135,7 @@ fun OnboardingScreen(
                                     onClick = {
                                         lifestyle = selectionOption
                                         expandedLifestyle = false
+                                        calculatedCalories = null
                                     }
                                 )
                             }
@@ -165,6 +175,7 @@ fun OnboardingScreen(
                                     onClick = {
                                         goal = selectionOption
                                         expandedGoal = false
+                                        calculatedCalories = null
                                     }
                                 )
                             }
@@ -176,6 +187,7 @@ fun OnboardingScreen(
                     Flip7Button(
                         text = "Calculate Goals",
                         variant = Flip7ButtonVariant.MONOCHROME,
+                        enabled = age.isNotBlank() && height.toDoubleOrNull() != null && weight.toDoubleOrNull() != null,
                         onClick = {
                             val ageInt = age.toIntOrNull() ?: 25
                             val heightDouble = height.toDoubleOrNull() ?: 170.0

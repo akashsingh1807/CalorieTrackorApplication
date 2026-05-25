@@ -48,7 +48,8 @@ fun App(
     bookmarkRepository: BookmarkRepository? = null,
     weightRepository: com.calorie.tracker.feature_journal.domain.WeightRepository? = null,
     waterRepository: com.calorie.tracker.feature_journal.domain.WaterRepository? = null,
-    onGoogleSignInClick: (onTokenReceived: (String) -> Unit, onError: (String) -> Unit) -> Unit = { _, _ -> }
+    onGoogleSignInClick: (onTokenReceived: (String) -> Unit, onError: (String) -> Unit) -> Unit = { _, _ -> },
+    onLogout: () -> Unit = {}
 ) {
     val authViewModel = remember { AuthViewModel(authRepository) }
     val dashboardViewModel = remember { DashboardViewModel(mealRepository, apiClient, bookmarkRepository) }
@@ -72,6 +73,13 @@ fun App(
     val scope = rememberCoroutineScope()
 
     var hasCompletedOnboarding by remember { mutableStateOf(false) }
+
+    val handleLogout = {
+        authRepository.clearToken()
+        hasCompletedOnboarding = false
+        onLogout()
+        currentScreen = Screen.Auth
+    }
 
     LaunchedEffect(currentScreen) {
         if (currentScreen == Screen.Dashboard) {
@@ -201,8 +209,7 @@ fun App(
                                     selected = false,
                                     onClick = {
                                         scope.launch { drawerState.close() }
-                                        authRepository.clearToken()
-                                        currentScreen = Screen.Auth
+                                        handleLogout()
                                     },
                                     colors = NavigationDrawerItemDefaults.colors(
                                         unselectedContainerColor = Color.Transparent
@@ -282,8 +289,7 @@ fun App(
                                     currentScreen = Screen.Streak
                                 },
                                 onLogout = {
-                                    authRepository.clearToken()
-                                    currentScreen = Screen.Auth
+                                    handleLogout()
                                 }
                             )
                         }
@@ -347,8 +353,7 @@ fun App(
                                 onBackClick = { currentScreen = Screen.Dashboard },
                                 onLogoutClick = {
                                     scope.launch { drawerState.close() }
-                                    authRepository.clearToken()
-                                    currentScreen = Screen.Auth
+                                    handleLogout()
                                 }
                             )
                         }

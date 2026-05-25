@@ -47,16 +47,16 @@ public class UserController {
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (updates.containsKey("name")) user.setName((String) updates.get("name"));
-        if (updates.containsKey("height")) user.setHeight(((Number) updates.get("height")).doubleValue());
-        if (updates.containsKey("weight")) user.setCurrentWeight(((Number) updates.get("weight")).doubleValue());
-        if (updates.containsKey("age")) user.setAge(((Number) updates.get("age")).intValue());
-        if (updates.containsKey("lifestyle")) user.setLifestyle(com.calorie.tracker.model.Lifestyle.valueOf((String) updates.get("lifestyle")));
-        if (updates.containsKey("goal")) user.setGoal(com.calorie.tracker.model.GoalType.valueOf((String) updates.get("goal")));
-        if (updates.containsKey("dailyCalorieGoal")) user.setDailyCalorieGoal(((Number) updates.get("dailyCalorieGoal")).intValue());
-        if (updates.containsKey("dailyProteinGoal")) user.setDailyProteinGoal(((Number) updates.get("dailyProteinGoal")).intValue());
-        if (updates.containsKey("dailyCarbsGoal")) user.setDailyCarbsGoal(((Number) updates.get("dailyCarbsGoal")).intValue());
-        if (updates.containsKey("dailyFatGoal")) user.setDailyFatGoal(((Number) updates.get("dailyFatGoal")).intValue());
+        if (updates.containsKey("name") && updates.get("name") != null) user.setName((String) updates.get("name"));
+        if (updates.containsKey("height") && updates.get("height") != null) user.setHeight(((Number) updates.get("height")).doubleValue());
+        if (updates.containsKey("weight") && updates.get("weight") != null) user.setCurrentWeight(((Number) updates.get("weight")).doubleValue());
+        if (updates.containsKey("age") && updates.get("age") != null) user.setAge(((Number) updates.get("age")).intValue());
+        if (updates.containsKey("lifestyle") && updates.get("lifestyle") != null) user.setLifestyle(com.calorie.tracker.model.Lifestyle.valueOf((String) updates.get("lifestyle")));
+        if (updates.containsKey("goal") && updates.get("goal") != null) user.setGoal(com.calorie.tracker.model.GoalType.valueOf((String) updates.get("goal")));
+        if (updates.containsKey("dailyCalorieGoal") && updates.get("dailyCalorieGoal") != null) user.setDailyCalorieGoal(((Number) updates.get("dailyCalorieGoal")).intValue());
+        if (updates.containsKey("dailyProteinGoal") && updates.get("dailyProteinGoal") != null) user.setDailyProteinGoal(((Number) updates.get("dailyProteinGoal")).intValue());
+        if (updates.containsKey("dailyCarbsGoal") && updates.get("dailyCarbsGoal") != null) user.setDailyCarbsGoal(((Number) updates.get("dailyCarbsGoal")).intValue());
+        if (updates.containsKey("dailyFatGoal") && updates.get("dailyFatGoal") != null) user.setDailyFatGoal(((Number) updates.get("dailyFatGoal")).intValue());
 
         userRepository.save(user);
 
