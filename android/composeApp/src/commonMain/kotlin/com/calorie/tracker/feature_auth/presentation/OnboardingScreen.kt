@@ -1,7 +1,9 @@
 package com.calorie.tracker.feature_auth.presentation
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -36,6 +38,11 @@ fun OnboardingScreen(
     var goal by remember { mutableStateOf("MAINTENANCE") }
     val goals = listOf("FAT_LOSS", "MAINTENANCE", "MUSCLE_GAIN")
 
+    var calculatedCalories by remember { mutableStateOf<Int?>(null) }
+    var calculatedCarbsGrams by remember { mutableStateOf<Int?>(null) }
+    var calculatedProteinGrams by remember { mutableStateOf<Int?>(null) }
+    var calculatedFatGrams by remember { mutableStateOf<Int?>(null) }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -67,21 +74,30 @@ fun OnboardingScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Flip7TextField(
                         value = age,
-                        onValueChange = { age = it.filter { char -> char.isDigit() } },
+                        onValueChange = {
+                            age = it.filter { char -> char.isDigit() }
+                            calculatedCalories = null
+                        },
                         label = "Age (Years)",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                     
                     Flip7TextField(
                         value = height,
-                        onValueChange = { height = it },
+                        onValueChange = {
+                            height = it
+                            calculatedCalories = null
+                        },
                         label = "Height (cm)",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                     )
                     
                     Flip7TextField(
                         value = weight,
-                        onValueChange = { weight = it },
+                        onValueChange = {
+                            weight = it
+                            calculatedCalories = null
+                        },
                         label = "Weight (kg)",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                     )
@@ -101,11 +117,11 @@ fun OnboardingScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                focusedBorderColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                focusedLabelColor = MaterialTheme.colorScheme.onSurface,
                                 unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
@@ -119,6 +135,7 @@ fun OnboardingScreen(
                                     onClick = {
                                         lifestyle = selectionOption
                                         expandedLifestyle = false
+                                        calculatedCalories = null
                                     }
                                 )
                             }
@@ -140,11 +157,11 @@ fun OnboardingScreen(
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                focusedBorderColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                focusedLabelColor = MaterialTheme.colorScheme.onSurface,
                                 unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
@@ -158,6 +175,7 @@ fun OnboardingScreen(
                                     onClick = {
                                         goal = selectionOption
                                         expandedGoal = false
+                                        calculatedCalories = null
                                     }
                                 )
                             }
@@ -169,15 +187,96 @@ fun OnboardingScreen(
                     Flip7Button(
                         text = "Calculate Goals",
                         variant = Flip7ButtonVariant.MONOCHROME,
+                        enabled = age.isNotBlank() && height.toDoubleOrNull() != null && weight.toDoubleOrNull() != null,
                         onClick = {
                             val ageInt = age.toIntOrNull() ?: 25
                             val heightDouble = height.toDoubleOrNull() ?: 170.0
                             val weightDouble = weight.toDoubleOrNull() ?: 70.0
-                            onComplete(ageInt, heightDouble, weightDouble, lifestyle, goal)
+                            
+                            val bmr = 10 * weightDouble + 6.25 * heightDouble - 5 * ageInt + 5
+                            val lifestyleMultiplier = when (lifestyle) {
+                                "SEDENTARY" -> 1.2
+                                "LIGHTLY_ACTIVE" -> 1.375
+                                "MODERATELY_ACTIVE" -> 1.55
+                                "VERY_ACTIVE" -> 1.725
+                                "EXTRA_ACTIVE" -> 1.9
+                                else -> 1.2
+                            }
+                            val tdee = bmr * lifestyleMultiplier
+                            val targetCalories = when (goal) {
+                                "FAT_LOSS" -> tdee - 500
+                                "MUSCLE_GAIN" -> tdee + 500
+                                else -> tdee
+                            }.toInt()
+                            
+                            calculatedCalories = targetCalories
+                            calculatedCarbsGrams = (targetCalories * 0.50 / 4.0).toInt()
+                            calculatedProteinGrams = (targetCalories * 0.30 / 4.0).toInt()
+                            calculatedFatGrams = (targetCalories * 0.20 / 9.0).toInt()
                         }
                     )
+
+                    calculatedCalories?.let { calories ->
+                        Spacer(modifier = Modifier.height(16.dp))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Text(
+                            text = "Calculated Daily Targets",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                                Text("Calories", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("$calories kcal", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                                Text("Carbs (50%)", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("${calculatedCarbsGrams}g", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                                Text("Protein (30%)", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("${calculatedProteinGrams}g", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                                Text("Fat (20%)", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("${calculatedFatGrams}g", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(24.dp))
+                        
+                        Flip7Button(
+                            text = "Save to Daily Goals ✓",
+                            variant = Flip7ButtonVariant.MONOCHROME,
+                            onClick = {
+                                val ageInt = age.toIntOrNull() ?: 25
+                                val heightDouble = height.toDoubleOrNull() ?: 170.0
+                                val weightDouble = weight.toDoubleOrNull() ?: 70.0
+                                onComplete(ageInt, heightDouble, weightDouble, lifestyle, goal)
+                            }
+                        )
+                    }
                 }
             }
+            Spacer(modifier = Modifier.height(48.dp))
         }
     }
 }

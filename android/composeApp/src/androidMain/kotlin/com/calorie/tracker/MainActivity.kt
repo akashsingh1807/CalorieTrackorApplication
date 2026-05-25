@@ -28,6 +28,15 @@ class MainActivity : ComponentActivity() {
                 bookmarkRepository = app.bookmarkRepository,
                 weightRepository = app.weightRepository,
                 waterRepository = app.waterRepository,
+                onLogout = {
+                    lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                        try {
+                            app.database.clearAllTables()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                },
                 onGoogleSignInClick = { onTokenReceived, onError ->
                     lifecycleScope.launch {
                         try {

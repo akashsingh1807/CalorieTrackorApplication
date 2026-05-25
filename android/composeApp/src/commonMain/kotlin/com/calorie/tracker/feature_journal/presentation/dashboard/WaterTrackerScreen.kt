@@ -75,17 +75,19 @@ fun WaterTrackerScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             
+            val arcTrackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.15f)
+            val arcProgressColor = MaterialTheme.colorScheme.onBackground
             Box(contentAlignment = Alignment.Center, modifier = Modifier.size(250.dp)) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     drawArc(
-                        color = Color(0xFF2196F3).copy(alpha = 0.15f),
+                        color = arcTrackColor,
                         startAngle = -90f,
                         sweepAngle = 360f,
                         useCenter = false,
                         style = Stroke(width = 24.dp.toPx(), cap = StrokeCap.Round)
                     )
                     drawArc(
-                        color = Color(0xFF2196F3),
+                        color = arcProgressColor,
                         startAngle = -90f,
                         sweepAngle = progress * 360f,
                         useCenter = false,
@@ -143,7 +145,10 @@ fun WaterTrackerScreen(
                         }
                     },
                     modifier = Modifier.size(64.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color(0xFF2196F3), contentColor = Color.White),
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.onBackground,
+                        contentColor = MaterialTheme.colorScheme.background
+                    ),
                     shape = CircleShape
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Add Water")

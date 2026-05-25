@@ -13,12 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.LocalDate
+import kotlinx.datetime.*
 
 // Represents the state of the meal analysis workflow
 sealed class MealAnalysisState {
@@ -52,6 +47,13 @@ class DashboardViewModel(
     private val _bookmarks = MutableStateFlow<List<BookmarkedMeal>>(emptyList())
     val bookmarks: StateFlow<List<BookmarkedMeal>> = _bookmarks.asStateFlow()
 
+    // ── Streak State ─────────────────────────────────────
+    private val _streak = MutableStateFlow(0)
+    val streak: StateFlow<Int> = _streak.asStateFlow()
+
+    private val _longestStreak = MutableStateFlow(0)
+    val longestStreak: StateFlow<Int> = _longestStreak.asStateFlow()
+
     /** Snackbar-style feedback message after quick actions */
     private val _feedbackMessage = MutableStateFlow<String?>(null)
     val feedbackMessage: StateFlow<String?> = _feedbackMessage.asStateFlow()
@@ -78,12 +80,70 @@ class DashboardViewModel(
             }
         }
 
+        // Calculate streak dynamically from all meals
+        viewModelScope.launch {
+            val timeZone = TimeZone.currentSystemDefault()
+            val today = Clock.System.now().toLocalDateTime(timeZone).date
+            val startOfPeriod = today.minus(90, kotlinx.datetime.DateTimeUnit.DAY).atStartOfDayIn(timeZone).toEpochMilliseconds()
+            val endOfPeriod = today.plus(1, kotlinx.datetime.DateTimeUnit.DAY).atStartOfDayIn(timeZone).toEpochMilliseconds()
+
+            mealRepository.getMealsForDate(startOfPeriod, endOfPeriod).collectLatest { periodMeals ->
+                val (curr, long) = calculateStreak(periodMeals, today, timeZone)
+                _streak.value = curr
+                _longestStreak.value = long
+            }
+        }
+
         // Observe bookmarks live
         viewModelScope.launch {
             bookmarkRepository?.getAllBookmarks()?.collectLatest { list ->
                 _bookmarks.value = list
             }
         }
+    }
+
+    private fun calculateStreak(meals: List<Meal>, today: LocalDate, timeZone: TimeZone): Pair<Int, Int> {
+        val loggedDates = meals.map {
+            kotlinx.datetime.Instant.fromEpochMilliseconds(it.timestamp).toLocalDateTime(timeZone).date
+        }.toSet()
+
+        var current = 0
+        var longest = 0
+        var tempStreak = 0
+
+        val hasLoggedToday = loggedDates.contains(today)
+        val hasLoggedYesterday = loggedDates.contains(today.minus(1, kotlinx.datetime.DateTimeUnit.DAY))
+        val startCheckingFrom = if (hasLoggedToday) today else if (hasLoggedYesterday) today.minus(1, kotlinx.datetime.DateTimeUnit.DAY) else null
+
+        if (startCheckingFrom != null) {
+            var checkDate: LocalDate = startCheckingFrom
+            while (loggedDates.contains(checkDate)) {
+                current++
+                checkDate = checkDate.minus(1, kotlinx.datetime.DateTimeUnit.DAY)
+            }
+        }
+
+        if (loggedDates.isNotEmpty()) {
+            val sortedDates = loggedDates.sorted()
+            var lastDate: LocalDate? = null
+            for (date in sortedDates) {
+                if (lastDate == null) {
+                    tempStreak = 1
+                } else {
+                    val daysBetween = lastDate.daysUntil(date)
+                    if (daysBetween == 1) {
+                        tempStreak++
+                    } else if (daysBetween > 1) {
+                        longest = maxOf(longest, tempStreak)
+                        tempStreak = 1
+                    }
+                }
+                lastDate = date
+            }
+            longest = maxOf(longest, tempStreak)
+        }
+
+        return Pair(current, maxOf(longest, current))
     }
 
     fun selectDate(date: LocalDate) {

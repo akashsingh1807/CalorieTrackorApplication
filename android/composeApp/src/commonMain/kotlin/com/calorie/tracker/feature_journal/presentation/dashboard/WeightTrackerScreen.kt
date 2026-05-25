@@ -116,11 +116,14 @@ fun WeightTrackerScreen(
                         },
                         modifier = Modifier.fillMaxWidth().height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.onBackground,
+                            contentColor = MaterialTheme.colorScheme.background
+                        )
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
+                        Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.background)
                         Spacer(Modifier.width(8.dp))
-                        Text("Save Entry", color = Color.White, fontWeight = FontWeight.SemiBold)
+                        Text("Save Entry", color = MaterialTheme.colorScheme.background, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

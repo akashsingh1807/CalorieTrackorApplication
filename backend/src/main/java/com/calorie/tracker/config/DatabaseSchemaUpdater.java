@@ -23,6 +23,9 @@ public class DatabaseSchemaUpdater {
             // Add auth_provider column if it doesn't exist
             jdbcTemplate.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(255) DEFAULT 'LOCAL'");
             
+            // Add role column if it doesn't exist
+            jdbcTemplate.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(255) DEFAULT 'ROLE_USER'");
+            
             // Add google_id column if it doesn't exist
             jdbcTemplate.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255) UNIQUE");
 

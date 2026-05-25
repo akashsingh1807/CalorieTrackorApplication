@@ -199,7 +199,7 @@ private fun LoginForm(
         Spacer(modifier = Modifier.height(8.dp))
 
         if (isLoading) {
-            CircularProgressIndicator(color = Color.Black, modifier = Modifier.align(Alignment.CenterHorizontally))
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.align(Alignment.CenterHorizontally))
         } else {
             Flip7Button(
                 text = "Log In",
@@ -244,7 +244,7 @@ private fun RegisterForm(
         Spacer(modifier = Modifier.height(8.dp))
 
         if (isLoading) {
-            CircularProgressIndicator(color = Color.Black, modifier = Modifier.align(Alignment.CenterHorizontally))
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.align(Alignment.CenterHorizontally))
         } else {
             Flip7Button(
                 text = "Sign Up",

@@ -145,6 +145,8 @@ fun StreakScreen(
 
                     // Date row: Last 7 days
                     val streakDays = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<List<StreakDay>>(emptyList()) }
+                    val computedAverageCalories = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0) }
+                    val computedAboveBudget = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0) }
                     val timeZone = kotlinx.datetime.TimeZone.currentSystemDefault()
                     val today = kotlinx.datetime.Clock.System.now().toLocalDateTime(timeZone).date
                     
@@ -156,6 +158,10 @@ fun StreakScreen(
                             
                         mealRepository.getMealsForDate(startOf7DaysAgo, endOfToday).collect { allMeals ->
                             val daysList = mutableListOf<StreakDay>()
+                            var totalCalAllDays = 0
+                            var totalDaysWithLogs = 0
+                            var totalAboveBudget = 0
+
                             for (i in 6 downTo 0) {
                                 val d = today.minus(i, kotlinx.datetime.DateTimeUnit.DAY)
                                 val dStart = d.atStartOfDayIn(timeZone).toEpochMilliseconds()
@@ -166,6 +172,14 @@ fun StreakScreen(
                                 val hasMeals = mealsForDay.isNotEmpty()
                                 val isOver = hasMeals && dayTotal > budgetCalorie
                                 val isUnderOrEq = hasMeals && dayTotal <= budgetCalorie
+                                
+                                if (hasMeals) {
+                                    totalCalAllDays += dayTotal
+                                    totalDaysWithLogs++
+                                    if (dayTotal > budgetCalorie) {
+                                        totalAboveBudget += (dayTotal - budgetCalorie)
+                                    }
+                                }
                                 
                                 daysList.add(
                                     StreakDay(
@@ -178,6 +192,8 @@ fun StreakScreen(
                                 )
                             }
                             streakDays.value = daysList
+                            computedAverageCalories.value = if (totalDaysWithLogs > 0) (totalCalAllDays / totalDaysWithLogs) else 0
+                            computedAboveBudget.value = totalAboveBudget
                         }
                     }
 
@@ -186,14 +202,22 @@ fun StreakScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         for (day in streakDays.value) {
-                            val bgColor = if (day.isOverBudget) Color(0xFFFFF1F0) else if (day.isUnderOrEqualBudget) Color(0xFFE3F2FD) else Color.Transparent
-                            val textColor = if (day.isOverBudget) Color(0xFFD32F2F) else if (day.isUnderOrEqualBudget) Color(0xFF1976D2) else Color.Gray
-                            
-                            val borderColor = if (day.isSelected) {
-                                if (day.isOverBudget) Color(0xFFD32F2F) else if (day.isUnderOrEqualBudget) Color(0xFF1976D2) else Color.Black
+                            val bgColor = if (day.isOverBudget) {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            } else if (day.isUnderOrEqualBudget) {
+                                MaterialTheme.colorScheme.onSurface
                             } else {
                                 Color.Transparent
                             }
+                            val textColor = if (day.isOverBudget) {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            } else if (day.isUnderOrEqualBudget) {
+                                MaterialTheme.colorScheme.surface
+                            } else {
+                                Color.Gray
+                            }
+                            
+                            val borderColor = if (day.isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent
                             val borderStroke = if (day.isSelected) BorderStroke(1.dp, borderColor) else null
 
                             Column(
@@ -241,10 +265,10 @@ fun StreakScreen(
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(
-                                text = "$caloriesAboveBudget",
+                                text = "${computedAboveBudget.value}",
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFD32F2F)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "Calories Above\nBudget",
@@ -262,7 +286,7 @@ fun StreakScreen(
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(
-                                text = "$averageCalories",
+                                text = "${computedAverageCalories.value}",
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -309,13 +333,13 @@ fun StreakScreen(
                         Icon(
                             imageVector = Icons.Default.Description,
                             contentDescription = "Weekly Summary",
-                            tint = Color(0xFF1976D2),
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "View Weekly Summary",
-                            color = Color(0xFF1976D2),
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold,
                             style = MaterialTheme.typography.bodyMedium
                         )

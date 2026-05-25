@@ -48,6 +48,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // Disable CSRF because authentication is stateless and uses Bearer JWTs in HTTP headers
+                // rather than automatic browser-managed cookies (mitigating standard CSRF vectors).
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -56,6 +58,7 @@ public class SecurityConfig {
                             .requestMatchers("/api/v1/auth/**").permitAll()
                             .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                             .requestMatchers("/error").permitAll()
+                            .requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN")
                             .anyRequest().authenticated()
                 );
 
@@ -68,7 +71,12 @@ public class SecurityConfig {
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        configuration.setAllowedOriginPatterns(java.util.List.of("*"));
+        // Restrict CORS allowed origins to local development hosts to prevent cross-origin request hijacking
+        configuration.setAllowedOriginPatterns(java.util.List.of(
+                "http://localhost:[*]",
+                "http://127.0.0.1:[*]",
+                "http://10.0.2.2:[*]"
+        ));
         configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(java.util.List.of("*"));
         configuration.setExposedHeaders(java.util.List.of("Authorization", "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"));
