@@ -49,7 +49,7 @@ class WaterAndWeightFlowTest {
         composeTestRule.onNodeWithText("Water Tracker").performClick()
 
         // Verify we are on Water Tracker screen
-        composeTestRule.onNodeWithText("Daily Goal: 8 glasses").assertExists()
+        composeTestRule.onNodeWithContentDescription("Add Water").assertExists()
     }
 
     @Test
@@ -85,6 +85,6 @@ class WaterAndWeightFlowTest {
         composeTestRule.onNodeWithText("Weight Tracker").performClick()
 
         // Verify we are on Weight Tracker screen
-        composeTestRule.onNodeWithText("Log Weight").assertExists()
+        composeTestRule.onNodeWithText("Log Today's Weight").assertExists()
     }
 }

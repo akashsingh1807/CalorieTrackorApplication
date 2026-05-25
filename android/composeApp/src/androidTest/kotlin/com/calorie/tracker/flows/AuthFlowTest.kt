@@ -1,8 +1,7 @@
 package com.calorie.tracker.flows
 
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import com.calorie.tracker.App
 import com.calorie.tracker.fakes.*
 import org.junit.Rule
@@ -32,7 +31,7 @@ class AuthFlowTest {
         }
 
         // Verify we start on Auth screen
-        composeTestRule.onNodeWithText("Welcome Back").assertExists()
+        composeTestRule.onNodeWithText("Caloriyaan").assertExists()
         composeTestRule.onNodeWithText("Sign in with Google").assertExists()
 
         // We can't fully simulate Google Sign In UI without actual Google Play Services
@@ -42,9 +41,9 @@ class AuthFlowTest {
         // Let's verify the button exists and triggers the callback if we had a fake callback.
         
         // Actually, the email/password login is also there.
-        // If the user enters credentials and clicks "Log in":
-        composeTestRule.onNodeWithText("Log in").assertExists()
-        composeTestRule.onNodeWithText("Log in").performClick()
+        // If the user enters credentials and clicks "Log In":
+        composeTestRule.onAllNodesWithText("Log In").assertCountEquals(2)
+        composeTestRule.onAllNodesWithText("Log In")[1].performClick()
         
         // Since we didn't mock apiClient to return success, it will show an error or do nothing.
         // This is a basic structural test.

@@ -377,10 +377,16 @@ class DashboardViewModel(
      */
     private fun buildFallbackItem(query: String): FoodItemDto? {
         val lower = query.lowercase().trim()
+        val normalizedQuery = lower
+            .replace("aalo", "aloo")
+            .replace("chiken", "chicken")
+            .replace("daal", "dal")
+            .replace("chapaty", "chapati")
+            .replace("pratha", "paratha")
 
         // Try to extract quantity from string like "200g chicken" or "2 eggs"
-        val quantityGrams = extractGrams(lower)
-        val quantityPieces = extractPieces(lower)
+        val quantityGrams = extractGrams(normalizedQuery)
+        val quantityPieces = extractPieces(normalizedQuery)
 
         // Per-100g data: cal, protein, carbs, fat, fiber, sugar, sodium(mg), potassium(mg), calcium(mg), iron(mg), vitC(mg), vitD(µg)
         data class NutrientPer100g(
@@ -390,34 +396,36 @@ class DashboardViewModel(
         )
 
         val foodDb = mapOf(
-            "banana"     to NutrientPer100g(89.0,  1.1, 23.0,  0.3,  2.6, 12.2,  1.0,  358.0,  5.0, 0.3,  8.7,  0.0),
-            "apple"      to NutrientPer100g(52.0,  0.3, 14.0,  0.2,  2.4, 10.4,  1.0,  107.0,  6.0, 0.1,  4.6,  0.0),
-            "egg"        to NutrientPer100g(155.0, 13.0, 1.1, 11.0,  0.0,  1.1, 124.0, 126.0, 50.0, 1.8,  0.0,  2.0),
-            "chicken"    to NutrientPer100g(165.0, 31.0, 0.0,  3.6,  0.0,  0.0,  74.0, 256.0, 15.0, 1.0,  0.0,  0.1),
-            "rice"       to NutrientPer100g(130.0,  2.7, 28.0, 0.3,  0.4,  0.0,   1.0,  35.0, 10.0, 0.2,  0.0,  0.0),
-            "brown rice" to NutrientPer100g(112.0,  2.6, 24.0, 0.9,  1.8,  0.4,   4.0,  79.0, 10.0, 0.5,  0.0,  0.0),
-            "dal"        to NutrientPer100g(115.0,  7.0, 18.0, 0.5,  3.5,  1.5,  10.0, 210.0, 30.0, 1.8,  1.5,  0.0),
-            "daal"       to NutrientPer100g(115.0,  7.0, 18.0, 0.5,  3.5,  1.5,  10.0, 210.0, 30.0, 1.8,  1.5,  0.0),
-            "dahi"       to NutrientPer100g(61.0,   5.0,  3.4, 3.3,  0.0,  3.2,  46.0, 141.0,110.0, 0.1,  0.5,  0.1),
-            "yogurt"     to NutrientPer100g(61.0,   5.0,  3.4, 3.3,  0.0,  3.2,  46.0, 141.0,110.0, 0.1,  0.5,  0.1),
-            "milk"       to NutrientPer100g(61.0,   3.2,  4.8, 3.3,  0.0,  5.0,  44.0, 132.0,113.0, 0.0,  0.5,  1.3),
-            "ghee"       to NutrientPer100g(900.0,  0.0,  0.0,99.8,  0.0,  0.0,   2.0,   5.0,  4.0, 0.0,  0.0,  0.0),
-            "roti"       to NutrientPer100g(297.0,  9.9, 52.0, 4.1,  3.5,  1.0, 320.0, 190.0, 70.0, 2.5,  0.0,  0.0),
-            "chapati"    to NutrientPer100g(297.0,  9.9, 52.0, 4.1,  3.5,  1.0, 320.0, 190.0, 70.0, 2.5,  0.0,  0.0),
-            "paneer"     to NutrientPer100g(296.0, 18.3,  1.2,22.7,  0.0,  0.5,  32.0,  40.0,480.0, 0.5,  0.0,  0.4),
-            "bread"      to NutrientPer100g(265.0,  9.0, 49.0, 3.2,  2.7,  5.0, 491.0, 100.0, 80.0, 3.0,  0.0,  0.0),
-            "oats"       to NutrientPer100g(389.0, 17.0, 66.0, 7.0, 10.6,  0.0,   2.0, 429.0, 54.0, 4.7,  0.0,  0.0),
-            "potato"     to NutrientPer100g(77.0,   2.0, 17.0, 0.1,  2.2,  0.8,   6.0, 421.0, 12.0, 0.8, 19.7,  0.0),
-            "salmon"     to NutrientPer100g(208.0, 20.0,  0.0,13.0,  0.0,  0.0,  59.0, 363.0, 12.0, 0.8,  3.0, 14.0),
-            "tuna"       to NutrientPer100g(132.0, 28.0,  0.0, 1.3,  0.0,  0.0,  50.0, 252.0, 38.0, 1.0,  0.0,  5.0),
-            "almonds"    to NutrientPer100g(579.0, 21.0, 22.0,50.0, 12.5,  4.4,   1.0, 733.0,264.0, 3.7,  0.0,  0.0),
-            "peanut"     to NutrientPer100g(567.0, 26.0, 16.0,49.0,  8.5,  4.7,  18.0, 705.0, 92.0, 4.6,  0.0,  0.0)
+            "banana"       to NutrientPer100g(89.0,  1.1, 23.0,  0.3,  2.6, 12.2,  1.0,  358.0,  5.0, 0.3,  8.7,  0.0),
+            "apple"        to NutrientPer100g(52.0,  0.3, 14.0,  0.2,  2.4, 10.4,  1.0,  107.0,  6.0, 0.1,  4.6,  0.0),
+            "egg"          to NutrientPer100g(155.0, 13.0, 1.1, 11.0,  0.0,  1.1, 124.0, 126.0, 50.0, 1.8,  0.0,  2.0),
+            "chicken"      to NutrientPer100g(165.0, 31.0, 0.0,  3.6,  0.0,  0.0,  74.0, 256.0, 15.0, 1.0,  0.0,  0.1),
+            "rice"         to NutrientPer100g(130.0,  2.7, 28.0, 0.3,  0.4,  0.0,   1.0,  35.0, 10.0, 0.2,  0.0,  0.0),
+            "brown rice"   to NutrientPer100g(112.0,  2.6, 24.0, 0.9,  1.8,  0.4,   4.0,  79.0, 10.0, 0.5,  0.0,  0.0),
+            "dal"          to NutrientPer100g(115.0,  7.0, 18.0, 0.5,  3.5,  1.5,  10.0, 210.0, 30.0, 1.8,  1.5,  0.0),
+            "daal"         to NutrientPer100g(115.0,  7.0, 18.0, 0.5,  3.5,  1.5,  10.0, 210.0, 30.0, 1.8,  1.5,  0.0),
+            "dahi"         to NutrientPer100g(61.0,   5.0,  3.4, 3.3,  0.0,  3.2,  46.0, 141.0,110.0, 0.1,  0.5,  0.1),
+            "yogurt"       to NutrientPer100g(61.0,   5.0,  3.4, 3.3,  0.0,  3.2,  46.0, 141.0,110.0, 0.1,  0.5,  0.1),
+            "milk"         to NutrientPer100g(61.0,   3.2,  4.8, 3.3,  0.0,  5.0,  44.0, 132.0,113.0, 0.0,  0.5,  1.3),
+            "ghee"         to NutrientPer100g(900.0,  0.0,  0.0,99.8,  0.0,  0.0,   2.0,   5.0,  4.0, 0.0,  0.0,  0.0),
+            "aloo paratha" to NutrientPer100g(250.0,  5.0, 36.0,  9.0,  3.0,  1.0, 350.0, 180.0, 40.0, 1.8,  2.0,  0.0),
+            "paratha"      to NutrientPer100g(290.0,  6.0, 40.0, 12.0,  2.5,  1.0, 380.0, 150.0, 30.0, 1.5,  0.0,  0.0),
+            "roti"         to NutrientPer100g(297.0,  9.9, 52.0, 4.1,  3.5,  1.0, 320.0, 190.0, 70.0, 2.5,  0.0,  0.0),
+            "chapati"      to NutrientPer100g(297.0,  9.9, 52.0, 4.1,  3.5,  1.0, 320.0, 190.0, 70.0, 2.5,  0.0,  0.0),
+            "paneer"       to NutrientPer100g(296.0, 18.3,  1.2,22.7,  0.0,  0.5,  32.0,  40.0,480.0, 0.5,  0.0,  0.4),
+            "bread"        to NutrientPer100g(265.0,  9.0, 49.0, 3.2,  2.7,  5.0, 491.0, 100.0, 80.0, 3.0,  0.0,  0.0),
+            "oats"         to NutrientPer100g(389.0, 17.0, 66.0, 7.0, 10.6,  0.0,   2.0, 429.0, 54.0, 4.7,  0.0,  0.0),
+            "potato"       to NutrientPer100g(77.0,   2.0, 17.0, 0.1,  2.2,  0.8,   6.0, 421.0, 12.0, 0.8, 19.7,  0.0),
+            "salmon"       to NutrientPer100g(208.0, 20.0,  0.0,13.0,  0.0,  0.0,  59.0, 363.0, 12.0, 0.8,  3.0, 14.0),
+            "tuna"         to NutrientPer100g(132.0, 28.0,  0.0, 1.3,  0.0,  0.0,  50.0, 252.0, 38.0, 1.0,  0.0,  5.0),
+            "almonds"      to NutrientPer100g(579.0, 21.0, 22.0,50.0, 12.5,  4.4,   1.0, 733.0,264.0, 3.7,  0.0,  0.0),
+            "peanut"       to NutrientPer100g(567.0, 26.0, 16.0,49.0,  8.5,  4.7,  18.0, 705.0, 92.0, 4.6,  0.0,  0.0)
         )
 
         var matchedNutrients: NutrientPer100g? = null
         var matchedFood = ""
         for ((food, nutrients) in foodDb) {
-            if (lower.contains(food)) {
+            if (normalizedQuery.contains(food)) {
                 matchedNutrients = nutrients
                 matchedFood = food
                 break
@@ -430,6 +438,8 @@ class DashboardViewModel(
                 matchedFood in listOf("roti", "chapati") -> (quantityPieces ?: 1) * 40.0
                 matchedFood == "banana" -> (quantityPieces ?: 1) * 120.0
                 matchedFood == "apple" -> (quantityPieces ?: 1) * 182.0
+                matchedFood == "aloo paratha" -> (quantityPieces ?: 1) * 150.0
+                matchedFood == "paratha" -> (quantityPieces ?: 1) * 100.0
                 else -> 100.0
             }
             val ratio = grams / 100.0

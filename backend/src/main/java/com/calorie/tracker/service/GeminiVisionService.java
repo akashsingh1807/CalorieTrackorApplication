@@ -208,7 +208,7 @@ public class GeminiVisionService {
         String promptText = "CRITICAL: You are an expert clinical dietician specializing in Indian and global cuisine." + personaInstructions + "\n" +
                 "Analyze this food description: '" + text + "'\n\n" +
                 "Instructions:\n" +
-                "1. Extract EACH separate food item mentioned.\n" +
+                "1. Extract EACH separate food item mentioned. Autocorrect any spelling mistakes, typos, phonetic spellings, or informal names automatically (e.g. interpret 'aalo paratha' or 'aloo pratha' as 'Aloo Paratha', 'chiken' as 'Chicken', etc.) before analyzing.\n" +
                 "2. Use STRICTLY ACCURATE nutritional data matching the USDA FoodData Central database.\n" +
                 "3. DO NOT HALLUCINATE CALORIES. Vegetables (like cucumbers, lettuce) are VERY LOW in calories (~15 kcal per medium cucumber). Only oils, grains, meats, and sweets are high calorie.\n" +
                 "4. If quantities are given (e.g., '200g', '2 eggs', '1 cup'), use those EXACT quantities to calculate nutrition.\n" +

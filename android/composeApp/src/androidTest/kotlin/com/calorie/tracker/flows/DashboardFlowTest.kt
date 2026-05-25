@@ -64,7 +64,7 @@ class DashboardFlowTest {
         composeTestRule.waitForIdle()
 
         // Check if "What did you eat?" input exists
-        val inputField = composeTestRule.onNodeWithText("What did you eat? e.g. 2 eggs and toast")
+        val inputField = composeTestRule.onNodeWithText("What did you eat or exercise?")
         inputField.assertExists()
 
         // Enter food

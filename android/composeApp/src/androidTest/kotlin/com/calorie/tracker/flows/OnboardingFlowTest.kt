@@ -1,8 +1,7 @@
 package com.calorie.tracker.flows
 
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import com.calorie.tracker.App
 import com.calorie.tracker.fakes.*
 import org.junit.Rule
@@ -44,10 +43,16 @@ class OnboardingFlowTest {
             )
         }
 
-        // Welcome Screen
+        // Let's Get Started Screen
         composeTestRule.waitForIdle()
-        // The first text might be "Welcome to Journable" or similar from OnboardingScreen
-        composeTestRule.onNodeWithText("Welcome!").assertExists()
-        composeTestRule.onNodeWithText("Continue").performClick()
+        composeTestRule.onNodeWithText("Let's Get Started").assertExists()
+        
+        // Enter values
+        composeTestRule.onNodeWithText("Age (Years)").performTextInput("25")
+        composeTestRule.onNodeWithText("Height (cm)").performTextInput("180")
+        composeTestRule.onNodeWithText("Weight (kg)").performTextInput("75")
+        
+        // Calculate goals
+        composeTestRule.onNodeWithText("Calculate Goals").performClick()
     }
 }
