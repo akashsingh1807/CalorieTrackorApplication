@@ -115,7 +115,7 @@ public class AuthService {
                     user = User.builder()
                             .name(name != null ? name : "User")
                             .email(email)
-                            .passwordHash("GOOGLE_OAUTH") // Dummy password hash
+                            .passwordHash(encoder.encode(java.util.UUID.randomUUID().toString()))
                             .authProvider(AuthProvider.GOOGLE)
                             .googleId(subjectId)
                             .dailyCalorieGoal(2000)
