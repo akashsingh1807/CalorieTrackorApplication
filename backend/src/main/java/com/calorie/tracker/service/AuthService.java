@@ -90,6 +90,8 @@ public class AuthService {
 
     public AuthResponse authenticateWithGoogle(String idTokenString) {
         try {
+            System.out.println("DEBUG Auth: idTokenString = " + idTokenString);
+            System.out.println("DEBUG Auth: googleClientId = " + googleClientId);
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
                     new NetHttpTransport(), GsonFactory.getDefaultInstance())
                     .setAudience(Collections.singletonList(googleClientId))
