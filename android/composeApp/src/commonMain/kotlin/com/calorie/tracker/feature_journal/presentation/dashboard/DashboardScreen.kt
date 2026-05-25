@@ -410,7 +410,7 @@ fun DashboardScreen(
                         }
                         val dayNum = date.dayOfMonth.toString()
 
-                        val bgColor = if (isLogged) Color(0xFFEEEEEE) else Color.Transparent
+                        val bgColor = if (isLogged) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent
                         val borderColor = if (isSelected) {
                             MaterialTheme.colorScheme.onBackground
                         } else {
@@ -439,14 +439,14 @@ fun DashboardScreen(
                             Text(
                                 text = dayName,
                                 fontSize = 11.sp,
-                                color = if (isLogged) MaterialTheme.colorScheme.onBackground else Color.Gray
+                                color = if (isLogged) MaterialTheme.colorScheme.onSurfaceVariant else Color.Gray
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = dayNum,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground
+                                color = if (isLogged) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
