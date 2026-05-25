@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
                         try {
                             val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
                                 .setFilterByAuthorizedAccounts(false)
-                                .setServerClientId("101851020637-vqqc1kk3e7969r865l25ujvgg3hufk77.apps.googleusercontent.com") 
+                                .setServerClientId("101851020637-3pifturaj43ied5tv3hlld6mv13s6lte.apps.googleusercontent.com") 
                                 .setAutoSelectEnabled(false)
                                 .build()
 
