@@ -2,7 +2,9 @@ package com.calorie.tracker.service;
 
 import com.calorie.tracker.dto.FoodItemDto;
 import com.calorie.tracker.model.AiRequest;
+import com.calorie.tracker.model.FoodAnalysisCache;
 import com.calorie.tracker.repository.AiRequestRepository;
+import com.calorie.tracker.repository.FoodAnalysisCacheRepository;
 import com.calorie.tracker.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,6 +42,9 @@ public class GeminiVisionService {
     
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private FoodAnalysisCacheRepository foodAnalysisCacheRepository;
 
     public GeminiVisionService() {
         this.webClient = WebClient.builder()
@@ -196,6 +201,20 @@ public class GeminiVisionService {
     public List<FoodItemDto> analyzeText(Long userId, String text, String persona) {
         if (text == null || text.trim().isEmpty()) return new ArrayList<>();
 
+        String normalizedQuery = text.trim().toLowerCase();
+        String personaStr = (persona != null ? persona.trim().toUpperCase() : "NONE");
+        String cacheKey = personaStr + ":" + normalizedQuery;
+
+        try {
+            var cached = foodAnalysisCacheRepository.findByQueryKey(cacheKey);
+            if (cached.isPresent()) {
+                logger.info("Cache hit for key: {}. Returning cached food analysis.", cacheKey);
+                return objectMapper.readValue(cached.get().getResponseJson(), new TypeReference<List<FoodItemDto>>() {});
+            }
+        } catch (Exception e) {
+            logger.error("Error reading from food analysis cache for key {}: {}", cacheKey, e.getMessage(), e);
+        }
+
         logAiRequest(userId, "TEXT_ANALYSIS", text.length() / 2);
         
         String personaInstructions = "";
@@ -238,7 +257,23 @@ public class GeminiVisionService {
             var contents = List.of(Map.of("parts", List.of(Map.of("text", promptText))));
             String requestBody = objectMapper.writeValueAsString(Map.of("contents", contents));
 
-            return callGeminiApi(requestBody);
+            List<FoodItemDto> result = callGeminiApi(requestBody);
+            
+            if (result != null && !result.isEmpty()) {
+                try {
+                    String jsonResponse = objectMapper.writeValueAsString(result);
+                    FoodAnalysisCache cacheEntry = FoodAnalysisCache.builder()
+                            .queryKey(cacheKey)
+                            .responseJson(jsonResponse)
+                            .createdAt(LocalDateTime.now())
+                            .build();
+                    foodAnalysisCacheRepository.save(cacheEntry);
+                    logger.info("Saved search result to cache for key: {}", cacheKey);
+                } catch (Exception e) {
+                    logger.error("Failed to write to food analysis cache for key {}: {}", cacheKey, e.getMessage(), e);
+                }
+            }
+            return result;
         } catch (Exception e) {
             logger.error("Gemini Text API preparation failed: {}", e.getMessage());
             return new ArrayList<>();
