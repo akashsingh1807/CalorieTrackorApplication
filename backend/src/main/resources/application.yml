@@ -37,7 +37,7 @@ minio:
 
 gemini:
   api:
-    key: ${GEMINI_API_KEY:AIzaSyAnPEyki4cB5EXsrgN7B8z-GKTyS-i5nAs}
+    key: ${GEMINI_API_KEY}
     url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
 
 nutrition:
