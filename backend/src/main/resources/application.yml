@@ -27,7 +27,7 @@ jwt:
   expirationMs: 86400000 # 24 hours
 
 google:
-  clientId: ${GOOGLE_CLIENT_ID:101851020637-vqqc1kk3e7969r865l25ujvgg3hufk77.apps.googleusercontent.com}
+  clientId: ${GOOGLE_CLIENT_ID:101851020637-3pifturaj43ied5tv3hlld6mv13s6lte.apps.googleusercontent.com}
 
 minio:
   url: http://localhost:9000
