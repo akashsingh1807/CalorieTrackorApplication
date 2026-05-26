@@ -26,4 +26,8 @@ class AndroidMealRepository(
     override suspend fun updateMeal(meal: Meal) {
         mealDao.updateMeal(MealEntity.fromDomain(meal))
     }
+
+    override suspend fun deleteMealById(mealId: Long) {
+        mealDao.deleteMealById(mealId)
+    }
 }

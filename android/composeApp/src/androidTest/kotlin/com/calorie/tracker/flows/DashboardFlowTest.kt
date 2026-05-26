@@ -78,6 +78,7 @@ class DashboardFlowTest {
         
         // Verify the logged food item is displayed on the screen
         composeTestRule.onNodeWithText("Apple").assertExists()
-        composeTestRule.onAllNodesWithText("95 kcal").assertCountEquals(2)
+        composeTestRule.onNodeWithText("95.0").assertExists()
+        composeTestRule.onNodeWithText("95 kcal").assertExists()
     }
 }

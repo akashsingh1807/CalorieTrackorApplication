@@ -25,6 +25,9 @@ public class MealService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private GeminiVisionService geminiVisionService;
+
     @Transactional
     public MealResponse saveMeal(Long userId, MealRequest request) {
         User user = userRepository.findById(userId)
@@ -59,6 +62,15 @@ public class MealService {
                 totalPro += dto.getProtein() != null ? dto.getProtein() : 0;
                 totalCarb += dto.getCarbs() != null ? dto.getCarbs() : 0;
                 totalFat += dto.getFat() != null ? dto.getFat() : 0;
+
+                // Cache the item (HealthifyMe mechanism)
+                try {
+                    String persona = user.getPersonaPreference() != null ? user.getPersonaPreference() : "NONE";
+                    geminiVisionService.cacheFoodItem(persona, dto);
+                } catch (Exception e) {
+                    org.slf4j.LoggerFactory.getLogger(MealService.class)
+                            .error("HealthifyMe Cache: Failed to cache manual food log: {}", dto.getName(), e);
+                }
             }
         }
 

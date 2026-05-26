@@ -20,7 +20,7 @@ import com.calorie.tracker.feature_journal.data.local.WeightEntity
         WeightEntity::class,
         WaterEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -94,6 +94,14 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                     """.trimIndent()
                 )
+            }
+        }
+
+        // Migration 5 → 6: Add mealCategory and itemsData columns to meals table
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE meals ADD COLUMN mealCategory TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE meals ADD COLUMN itemsData TEXT NOT NULL DEFAULT ''")
             }
         }
     }

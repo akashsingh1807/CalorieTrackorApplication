@@ -36,6 +36,14 @@ minio:
   bucketName: calorie-tracker-bucket
 
 gemini:
+  fooddata:
+    import:
+      enabled: true
+      filePath: /Users/akashsingh/Downloads/FoodData_Central_foundation_food_csv_2026-04-30/food_calorie_conversion_factor.csv
+  indianfood:
+    import:
+      enabled: true
+      url: https://raw.githubusercontent.com/lindsayjaacks/Indian-Nutrient-Databank-INDB-/master/indian_food.csv
   api:
     key: ${GEMINI_API_KEY}
     url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
