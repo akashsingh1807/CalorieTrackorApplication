@@ -23,5 +23,32 @@ data class Meal(
     val totalVitaminC: Double = 0.0,
     val totalVitaminD: Double = 0.0,
     val rawTextInput: String? = null,
-    val isAiLogged: Boolean = false
-)
+    val isAiLogged: Boolean = false,
+    val mealCategory: String = "BREAKFAST",
+    val itemsData: String = ""
+) {
+    fun toFoodItems(): List<FoodItemDto> {
+        return if (itemsData.isBlank()) {
+            listOf(
+                FoodItemDto(
+                    name = mealType,
+                    servingSize = "1 serving",
+                    calories = totalCalories,
+                    protein = totalProtein,
+                    carbs = totalCarbs,
+                    fat = totalFat,
+                    fiber = totalFiber,
+                    sugar = totalSugar,
+                    sodium = totalSodium,
+                    potassium = totalPotassium,
+                    calcium = totalCalcium,
+                    iron = totalIron,
+                    vitaminC = totalVitaminC,
+                    vitaminD = totalVitaminD
+                )
+            )
+        } else {
+            BookmarkedMeal.deserialiseItems(itemsData)
+        }
+    }
+}

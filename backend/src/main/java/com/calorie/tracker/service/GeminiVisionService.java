@@ -491,4 +491,54 @@ public class GeminiVisionService {
             return List.of("Grilled Chicken Salad", "Oats with Berries", "Quinoa Bowl");
         }
     }
+
+    public void cacheFoodItem(String persona, FoodItemDto dto) {
+        if (dto == null || dto.getName() == null || dto.getName().trim().isEmpty()) {
+            return;
+        }
+
+        String normalizedName = dto.getName().trim().toLowerCase();
+        String personaStr = (persona != null ? persona.trim().toUpperCase() : "NONE");
+
+        String exactCacheKey = personaStr + ":exact:" + normalizedName;
+
+        // Parse query to construct scaled cache key
+        ParsedFood parsed = parseFoodQuery(normalizedName + " " + (dto.getServingSize() != null ? dto.getServingSize() : ""));
+        String scaledCacheKey = personaStr + ":scaled:" + parsed.baseFood + ":" + parsed.unit;
+
+        try {
+            List<FoodItemDto> items = List.of(dto);
+            String jsonResponse = objectMapper.writeValueAsString(items);
+
+            // Save to exact cache
+            FoodAnalysisCache exactCache = FoodAnalysisCache.builder()
+                    .queryKey(exactCacheKey)
+                    .responseJson(jsonResponse)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            
+            foodAnalysisCacheRepository.findByQueryKey(exactCacheKey).ifPresent(c -> foodAnalysisCacheRepository.delete(c));
+            foodAnalysisCacheRepository.save(exactCache);
+            logger.info("HealthifyMe Cache: Saved/Updated exact cache for: {}", exactCacheKey);
+
+            // Save to scaled cache if valid single item
+            if (parsed.isValid() && parsed.quantity > 0) {
+                FoodItemDto baseItem = scaleFoodItem(dto, 1.0 / parsed.quantity, 1.0, parsed.unit);
+                String baseJsonResponse = objectMapper.writeValueAsString(List.of(baseItem));
+                
+                FoodAnalysisCache scaledCache = FoodAnalysisCache.builder()
+                        .queryKey(scaledCacheKey)
+                        .responseJson(baseJsonResponse)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                
+                foodAnalysisCacheRepository.findByQueryKey(scaledCacheKey).ifPresent(c -> foodAnalysisCacheRepository.delete(c));
+                foodAnalysisCacheRepository.save(scaledCache);
+                logger.info("HealthifyMe Cache: Saved/Updated scaled cache for: {}", scaledCacheKey);
+            }
+
+        } catch (Exception e) {
+            logger.error("Failed to write manual log to cache for {}: {}", normalizedName, e.getMessage(), e);
+        }
+    }
 }

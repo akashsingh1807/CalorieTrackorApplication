@@ -8,4 +8,5 @@ interface MealRepository {
     suspend fun insertMeal(meal: Meal): Long
     suspend fun getUnsyncedMeals(): List<Meal>
     suspend fun updateMeal(meal: Meal)
+    suspend fun deleteMealById(mealId: Long)
 }

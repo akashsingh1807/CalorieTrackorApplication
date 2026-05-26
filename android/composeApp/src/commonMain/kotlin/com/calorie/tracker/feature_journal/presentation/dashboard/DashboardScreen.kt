@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -311,7 +312,8 @@ fun DashboardScreen(
                     placeholder = { Text("What did you eat or exercise?", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), fontSize = 14.sp) },
                     modifier = Modifier
                         .weight(1f)
-                        .height(52.dp),
+                        .heightIn(min = 52.dp, max = 120.dp),
+                    maxLines = 4,
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -954,18 +956,11 @@ private fun FoodConfirmationDialog(
                 // Food items list
                 items.forEachIndexed { index, item ->
                     FoodItemConfirmRow(
+                        index = index,
                         item = item,
-                        onQuantityChange = { newQty ->
-                            val original = initialFoodItems[index]
-                            val ratio = newQty / (original.calories.takeIf { it > 0 } ?: 1.0)
+                        onItemChange = { updatedItem ->
                             items = items.toMutableList().also { list ->
-                                list[index] = item.copy(
-                                    servingSize = newQty.toString(),
-                                    calories = "%.1f".format(original.calories * ratio).toDouble(),
-                                    protein = "%.1f".format(original.protein * ratio).toDouble(),
-                                    carbs = "%.1f".format(original.carbs * ratio).toDouble(),
-                                    fat = "%.1f".format(original.fat * ratio).toDouble()
-                                )
+                                list[index] = updatedItem
                             }
                         }
                     )
@@ -1332,46 +1327,257 @@ private fun BookmarkCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FoodItemConfirmRow(
+    index: Int,
     item: FoodItemDto,
-    onQuantityChange: (Double) -> Unit
+    onItemChange: (FoodItemDto) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    // Parse quantity and unit
+    val servingSizeClean = remember(index) { item.servingSize.trim() }
+    val match = remember(index) { Regex("^([0-9.]+)\\s*(.*)$").matchEntire(servingSizeClean) }
+    val qtyString = remember(index) { match?.groupValues?.get(1) ?: "1" }
+    val unitString = remember(index) { match?.groupValues?.get(2)?.trim() ?: "piece" }
+
+    var name by remember(index) { mutableStateOf(item.name) }
+    var quantity by remember(index) { mutableStateOf(qtyString) }
+    var unit by remember(index) { mutableStateOf(unitString) }
+    var calories by remember(index) { mutableStateOf(item.calories.toString()) }
+    var carbs by remember(index) { mutableStateOf(item.carbs.toString()) }
+    var protein by remember(index) { mutableStateOf(item.protein.toString()) }
+    var fat by remember(index) { mutableStateOf(item.fat.toString()) }
+
+    // Baseline values for scaling (retains original values per unit)
+    val qtyVal = qtyString.toDoubleOrNull() ?: 1.0
+    val divisor = if (qtyVal > 0) qtyVal else 1.0
+    var baseCaloriesPerUnit by remember(index) { mutableStateOf(item.calories / divisor) }
+    var baseCarbsPerUnit by remember(index) { mutableStateOf(item.carbs / divisor) }
+    var baseProteinPerUnit by remember(index) { mutableStateOf(item.protein / divisor) }
+    var baseFatPerUnit by remember(index) { mutableStateOf(item.fat / divisor) }
+    var baseFiberPerUnit by remember(index) { mutableStateOf(item.fiber / divisor) }
+    var baseSugarPerUnit by remember(index) { mutableStateOf(item.sugar / divisor) }
+    var baseSodiumPerUnit by remember(index) { mutableStateOf(item.sodium / divisor) }
+    var basePotassiumPerUnit by remember(index) { mutableStateOf(item.potassium / divisor) }
+    var baseCalciumPerUnit by remember(index) { mutableStateOf(item.calcium / divisor) }
+    var baseIronPerUnit by remember(index) { mutableStateOf(item.iron / divisor) }
+    var baseVitaminCPerUnit by remember(index) { mutableStateOf(item.vitaminC / divisor) }
+    var baseVitaminDPerUnit by remember(index) { mutableStateOf(item.vitaminD / divisor) }
+
+    var unitMenuExpanded by remember { mutableStateOf(false) }
+    val units = listOf("g", "ml", "piece", "bowl", "cup", "tbsp", "tsp", "plate", "glass", "serving")
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+            .padding(10.dp)
+    ) {
+        // Name input
+        OutlinedTextField(
+            value = name,
+            onValueChange = {
+                name = it
+                onItemChange(item.copy(name = it))
+            },
+            label = { Text("Food Name", fontSize = 11.sp) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+            )
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Qty, Unit, Calories Row
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.name,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface
+            // Quantity
+            OutlinedTextField(
+                value = quantity,
+                onValueChange = { newValue ->
+                    val sanitized = newValue.filter { it.isDigit() || it == '.' }
+                    quantity = sanitized
+                    val qtyDouble = sanitized.toDoubleOrNull() ?: 0.0
+                    
+                    val updatedCalories = baseCaloriesPerUnit * qtyDouble
+                    val updatedCarbs = baseCarbsPerUnit * qtyDouble
+                    val updatedProtein = baseProteinPerUnit * qtyDouble
+                    val updatedFat = baseFatPerUnit * qtyDouble
+                    
+                    calories = if (qtyDouble > 0) "%.1f".format(updatedCalories) else ""
+                    carbs = if (qtyDouble > 0) "%.1f".format(updatedCarbs) else ""
+                    protein = if (qtyDouble > 0) "%.1f".format(updatedProtein) else ""
+                    fat = if (qtyDouble > 0) "%.1f".format(updatedFat) else ""
+                    
+                    onItemChange(item.copy(
+                        servingSize = "$sanitized $unit",
+                        calories = updatedCalories,
+                        carbs = updatedCarbs,
+                        protein = updatedProtein,
+                        fat = updatedFat,
+                        fiber = baseFiberPerUnit * qtyDouble,
+                        sugar = baseSugarPerUnit * qtyDouble,
+                        sodium = baseSodiumPerUnit * qtyDouble,
+                        potassium = basePotassiumPerUnit * qtyDouble,
+                        calcium = baseCalciumPerUnit * qtyDouble,
+                        iron = baseIronPerUnit * qtyDouble,
+                        vitaminC = baseVitaminCPerUnit * qtyDouble,
+                        vitaminD = baseVitaminDPerUnit * qtyDouble
+                    ))
+                },
+                label = { Text("Qty", fontSize = 11.sp) },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                 )
-                Text(
-                    text = item.servingSize,
-                    fontSize = 12.sp,
-                    color = Color.Gray
+            )
+
+            // Unit Dropdown
+            Box(modifier = Modifier.weight(1.5f)) {
+                OutlinedTextField(
+                    value = unit,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Unit", fontSize = 11.sp) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().clickable { unitMenuExpanded = true },
+                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
+                    trailingIcon = {
+                        IconButton(onClick = { unitMenuExpanded = true }) {
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                        }
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                    )
                 )
+                DropdownMenu(
+                    expanded = unitMenuExpanded,
+                    onDismissRequest = { unitMenuExpanded = false }
+                ) {
+                    units.forEach { u ->
+                        DropdownMenuItem(
+                            text = { Text(u) },
+                            onClick = {
+                                unit = u
+                                unitMenuExpanded = false
+                                onItemChange(item.copy(servingSize = "$quantity $u"))
+                            }
+                        )
+                    }
+                }
             }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "${item.calories.roundToInt()} kcal",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = Color.Black
+
+            // Calories
+            OutlinedTextField(
+                value = calories,
+                onValueChange = { newValue ->
+                    val sanitized = newValue.filter { c -> c.isDigit() || c == '.' }
+                    calories = sanitized
+                    val newCalDouble = sanitized.toDoubleOrNull() ?: 0.0
+                    val qtyDouble = quantity.toDoubleOrNull() ?: 1.0
+                    val divisor = if (qtyDouble > 0) qtyDouble else 1.0
+                    baseCaloriesPerUnit = newCalDouble / divisor
+                    onItemChange(item.copy(calories = newCalDouble))
+                },
+                label = { Text("kcal", fontSize = 11.sp) },
+                singleLine = true,
+                modifier = Modifier.weight(1.2f),
+                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                 )
-            }
+            )
         }
-        Spacer(modifier = Modifier.height(6.dp))
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Macros Row (Carbs, Protein, Fat)
         Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            MacroBadge("C", "${item.carbs.roundToInt()}g")
-            MacroBadge("P", "${item.protein.roundToInt()}g")
-            MacroBadge("F", "${item.fat.roundToInt()}g")
+            // Carbs
+            OutlinedTextField(
+                value = carbs,
+                onValueChange = { newValue ->
+                    val sanitized = newValue.filter { c -> c.isDigit() || c == '.' }
+                    carbs = sanitized
+                    val newCarbsDouble = sanitized.toDoubleOrNull() ?: 0.0
+                    val qtyDouble = quantity.toDoubleOrNull() ?: 1.0
+                    val divisor = if (qtyDouble > 0) qtyDouble else 1.0
+                    baseCarbsPerUnit = newCarbsDouble / divisor
+                    onItemChange(item.copy(carbs = newCarbsDouble))
+                },
+                label = { Text("Carbs (g)", fontSize = 10.sp) },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
+
+            // Protein
+            OutlinedTextField(
+                value = protein,
+                onValueChange = { newValue ->
+                    val sanitized = newValue.filter { c -> c.isDigit() || c == '.' }
+                    protein = sanitized
+                    val newProteinDouble = sanitized.toDoubleOrNull() ?: 0.0
+                    val qtyDouble = quantity.toDoubleOrNull() ?: 1.0
+                    val divisor = if (qtyDouble > 0) qtyDouble else 1.0
+                    baseProteinPerUnit = newProteinDouble / divisor
+                    onItemChange(item.copy(protein = newProteinDouble))
+                },
+                label = { Text("Prot (g)", fontSize = 10.sp) },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
+
+            // Fat
+            OutlinedTextField(
+                value = fat,
+                onValueChange = { newValue ->
+                    val sanitized = newValue.filter { c -> c.isDigit() || c == '.' }
+                    fat = sanitized
+                    val newFatDouble = sanitized.toDoubleOrNull() ?: 0.0
+                    val qtyDouble = quantity.toDoubleOrNull() ?: 1.0
+                    val divisor = if (qtyDouble > 0) qtyDouble else 1.0
+                    baseFatPerUnit = newFatDouble / divisor
+                    onItemChange(item.copy(fat = newFatDouble))
+                },
+                label = { Text("Fat (g)", fontSize = 10.sp) },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
         }
     }
 }

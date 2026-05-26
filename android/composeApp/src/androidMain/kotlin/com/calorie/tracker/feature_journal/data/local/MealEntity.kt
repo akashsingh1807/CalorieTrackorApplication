@@ -25,7 +25,9 @@ data class MealEntity(
     val totalVitaminC: Double = 0.0,
     val totalVitaminD: Double = 0.0,
     val rawTextInput: String? = null,
-    val isAiLogged: Boolean = false
+    val isAiLogged: Boolean = false,
+    val mealCategory: String = "BREAKFAST",
+    val itemsData: String = ""
 ) {
     fun toDomain(): Meal = Meal(
         id = id,
@@ -46,7 +48,9 @@ data class MealEntity(
         totalVitaminC = totalVitaminC,
         totalVitaminD = totalVitaminD,
         rawTextInput = rawTextInput,
-        isAiLogged = isAiLogged
+        isAiLogged = isAiLogged,
+        mealCategory = mealCategory,
+        itemsData = itemsData
     )
 
     companion object {
@@ -69,7 +73,9 @@ data class MealEntity(
             totalVitaminC = meal.totalVitaminC,
             totalVitaminD = meal.totalVitaminD,
             rawTextInput = meal.rawTextInput,
-            isAiLogged = meal.isAiLogged
+            isAiLogged = meal.isAiLogged,
+            mealCategory = meal.mealCategory,
+            itemsData = meal.itemsData
         )
     }
 }

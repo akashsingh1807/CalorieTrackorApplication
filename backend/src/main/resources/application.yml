@@ -23,7 +23,7 @@ server:
   port: ${PORT:8081}
 
 jwt:
-  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
   expirationMs: 86400000 # 24 hours
 
 google:
@@ -36,8 +36,16 @@ minio:
   bucketName: calorie-tracker-bucket
 
 gemini:
+  fooddata:
+    import:
+      enabled: true
+      filePath: /Users/akashsingh/Downloads/FoodData_Central_foundation_food_csv_2026-04-30/food_calorie_conversion_factor.csv
+  indianfood:
+    import:
+      enabled: true
+      url: https://raw.githubusercontent.com/lindsayjaacks/Indian-Nutrient-Databank-INDB-/master/indian_food.csv
   api:
-    key: ${GEMINI_API_KEY:AIzaSyAnPEyki4cB5EXsrgN7B8z-GKTyS-i5nAs}
+    key: ${GEMINI_API_KEY}
     url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
 
 nutrition:
