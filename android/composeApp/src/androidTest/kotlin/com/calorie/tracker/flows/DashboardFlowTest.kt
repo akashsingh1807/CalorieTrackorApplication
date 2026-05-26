@@ -71,13 +71,13 @@ class DashboardFlowTest {
         inputField.performTextInput("1 large apple")
         
         // Click send/submit button
-        // The send button is an icon button, we might need to find it by content description or simply tag
-        // Since we didn't add a test tag, we can look for the icon button by clicking the node with the send icon.
-        // Assuming there is a content description "Analyze food" or similar.
-        // If not, we can find the node by clicking on it via its visual representation, but it's tricky.
-        // Let's assume hitting ImeAction.Send or clicking the button works.
-        // Here we just test basic rendering to avoid brittle test failures.
+        composeTestRule.onNodeWithContentDescription("Send").performClick()
         
-        // For a comprehensive test, one would add `.testTag("send_button")` in DashboardScreen.
+        // Wait for the UI to update
+        composeTestRule.waitForIdle()
+        
+        // Verify the logged food item is displayed on the screen
+        composeTestRule.onNodeWithText("Apple").assertExists()
+        composeTestRule.onAllNodesWithText("95 kcal").assertCountEquals(2)
     }
 }
