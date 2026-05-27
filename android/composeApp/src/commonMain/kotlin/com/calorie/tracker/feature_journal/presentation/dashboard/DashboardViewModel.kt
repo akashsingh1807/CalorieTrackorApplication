@@ -173,11 +173,11 @@ class DashboardViewModel(
                             )
                         } else {
                             // Fallback if AI returned empty
-                            val fallback = buildFallbackItem(text)
-                            if (fallback != null) {
+                            val fallbacks = buildFallbackItems(text)
+                            if (fallbacks.isNotEmpty()) {
                                 _analysisState.value = MealAnalysisState.PendingConfirmation(
                                     originalText = text,
-                                    foodItems = listOf(fallback)
+                                    foodItems = fallbacks
                                 )
                             } else {
                                 _analysisState.value = MealAnalysisState.Error("Could not recognize food. Please try a different spelling.")
@@ -185,11 +185,11 @@ class DashboardViewModel(
                         }
                     }.onFailure {
                         // Fallback to local parse on network error
-                        val fallback = buildFallbackItem(text)
-                        if (fallback != null) {
+                        val fallbacks = buildFallbackItems(text)
+                        if (fallbacks.isNotEmpty()) {
                             _analysisState.value = MealAnalysisState.PendingConfirmation(
                                 originalText = text,
-                                foodItems = listOf(fallback)
+                                foodItems = fallbacks
                             )
                         } else {
                             _analysisState.value = MealAnalysisState.Error("Network error. Connect to internet for full food database.")
@@ -197,11 +197,11 @@ class DashboardViewModel(
                     }
                 } else {
                     // No API client (test/local mode), use local parser
-                    val fallback = buildFallbackItem(text)
-                    if (fallback != null) {
+                    val fallbacks = buildFallbackItems(text)
+                    if (fallbacks.isNotEmpty()) {
                         _analysisState.value = MealAnalysisState.PendingConfirmation(
                             originalText = text,
-                            foodItems = listOf(fallback)
+                            foodItems = fallbacks
                         )
                     } else {
                         _analysisState.value = MealAnalysisState.Error("Could not recognize food locally.")
@@ -433,20 +433,16 @@ class DashboardViewModel(
     /**
      * Local fallback parser — used when network is unavailable.
      * Uses per-100g nutrient tables for common Indian and global foods,
-     * now including micronutrients (fiber, sugar, sodium, potassium, calcium, iron, vitaminC, vitaminD).
+     * extracts multiple items, and calculates correct scaling.
      */
-    private fun buildFallbackItem(query: String): FoodItemDto? {
+    private fun buildFallbackItems(query: String): List<FoodItemDto> {
         val lower = query.lowercase().trim()
-        val normalizedQuery = lower
+        var normalizedQuery = lower
             .replace("aalo", "aloo")
             .replace("chiken", "chicken")
             .replace("daal", "dal")
             .replace("chapaty", "chapati")
             .replace("pratha", "paratha")
-
-        // Try to extract quantity from string like "200g chicken" or "2 eggs"
-        val quantityGrams = extractGrams(normalizedQuery)
-        val quantityPieces = extractPieces(normalizedQuery)
 
         // Per-100g data: cal, protein, carbs, fat, fiber, sugar, sodium(mg), potassium(mg), calcium(mg), iron(mg), vitC(mg), vitD(µg)
         data class NutrientPer100g(
@@ -463,7 +459,6 @@ class DashboardViewModel(
             "rice"         to NutrientPer100g(130.0,  2.7, 28.0, 0.3,  0.4,  0.0,   1.0,  35.0, 10.0, 0.2,  0.0,  0.0),
             "brown rice"   to NutrientPer100g(112.0,  2.6, 24.0, 0.9,  1.8,  0.4,   4.0,  79.0, 10.0, 0.5,  0.0,  0.0),
             "dal"          to NutrientPer100g(115.0,  7.0, 18.0, 0.5,  3.5,  1.5,  10.0, 210.0, 30.0, 1.8,  1.5,  0.0),
-            "daal"         to NutrientPer100g(115.0,  7.0, 18.0, 0.5,  3.5,  1.5,  10.0, 210.0, 30.0, 1.8,  1.5,  0.0),
             "dahi"         to NutrientPer100g(61.0,   5.0,  3.4, 3.3,  0.0,  3.2,  46.0, 141.0,110.0, 0.1,  0.5,  0.1),
             "yogurt"       to NutrientPer100g(61.0,   5.0,  3.4, 3.3,  0.0,  3.2,  46.0, 141.0,110.0, 0.1,  0.5,  0.1),
             "milk"         to NutrientPer100g(61.0,   3.2,  4.8, 3.3,  0.0,  5.0,  44.0, 132.0,113.0, 0.0,  0.5,  1.3),
@@ -482,46 +477,105 @@ class DashboardViewModel(
             "peanut"       to NutrientPer100g(567.0, 26.0, 16.0,49.0,  8.5,  4.7,  18.0, 705.0, 92.0, 4.6,  0.0,  0.0)
         )
 
-        var matchedNutrients: NutrientPer100g? = null
-        var matchedFood = ""
-        for ((food, nutrients) in foodDb) {
-            if (normalizedQuery.contains(food)) {
-                matchedNutrients = nutrients
-                matchedFood = food
-                break
+        val sortedKeys = foodDb.keys.sortedByDescending { it.length }
+        val matchedItems = mutableListOf<FoodItemDto>()
+
+        for (food in sortedKeys) {
+            val prevRegex = Regex("""(\d+(?:\.\d+)?|\d+/\d+)\s*(g|gm|grams?|kg|ml|cups?|plates?|pcs?|pieces?|bowls?|glasses?|servings?)?\s*(?:of\s+)?$food""")
+            val postRegex = Regex("""$food\s+(\d+(?:\.\d+)?|\d+/\d+)\s*(g|gm|grams?|kg|ml|cups?|plates?|pcs?|pieces?|bowls?|glasses?|servings?)?""")
+
+            var matched = false
+            var grams = 100.0
+
+            val prevMatch = prevRegex.find(normalizedQuery)
+            if (prevMatch != null) {
+                matched = true
+                val qty = parseDoubleOrFraction(prevMatch.groupValues[1])
+                val unitRaw = prevMatch.groupValues[2]
+                grams = calculateGrams(food, qty, unitRaw)
+            } else {
+                val postMatch = postRegex.find(normalizedQuery)
+                if (postMatch != null) {
+                    matched = true
+                    val qty = parseDoubleOrFraction(postMatch.groupValues[1])
+                    val unitRaw = postMatch.groupValues[2]
+                    grams = calculateGrams(food, qty, unitRaw)
+                } else if (normalizedQuery.contains(food)) {
+                    matched = true
+                    grams = calculateGrams(food, 1.0, "")
+                }
+            }
+
+            if (matched) {
+                val nutrients = foodDb[food] ?: continue
+                val ratio = grams / 100.0
+                matchedItems.add(
+                    FoodItemDto(
+                        name = "${food.replaceFirstChar { it.uppercase() }} (${grams.toInt()}g)",
+                        servingSize = "${"%.0f".format(grams)}g",
+                        calories   = "%.1f".format(nutrients.cal       * ratio).toDouble(),
+                        protein    = "%.1f".format(nutrients.prot      * ratio).toDouble(),
+                        carbs      = "%.1f".format(nutrients.carbs     * ratio).toDouble(),
+                        fat        = "%.1f".format(nutrients.fat       * ratio).toDouble(),
+                        fiber      = "%.1f".format(nutrients.fiber     * ratio).toDouble(),
+                        sugar      = "%.1f".format(nutrients.sugar     * ratio).toDouble(),
+                        sodium     = "%.1f".format(nutrients.sodium    * ratio).toDouble(),
+                        potassium  = "%.1f".format(nutrients.potassium * ratio).toDouble(),
+                        calcium    = "%.1f".format(nutrients.calcium   * ratio).toDouble(),
+                        iron       = "%.1f".format(nutrients.iron      * ratio).toDouble(),
+                        vitaminC   = "%.1f".format(nutrients.vitaminC  * ratio).toDouble(),
+                        vitaminD   = "%.1f".format(nutrients.vitaminD  * ratio).toDouble()
+                    )
+                )
+                normalizedQuery = normalizedQuery.replace(food, "")
             }
         }
 
-        if (matchedNutrients != null) {
-            val grams = quantityGrams ?: when {
-                matchedFood == "egg" -> (quantityPieces ?: 1) * 50.0
-                matchedFood in listOf("roti", "chapati") -> (quantityPieces ?: 1) * 40.0
-                matchedFood == "banana" -> (quantityPieces ?: 1) * 120.0
-                matchedFood == "apple" -> (quantityPieces ?: 1) * 182.0
-                matchedFood == "aloo paratha" -> (quantityPieces ?: 1) * 150.0
-                matchedFood == "paratha" -> (quantityPieces ?: 1) * 100.0
-                else -> 100.0
-            }
-            val ratio = grams / 100.0
-            return FoodItemDto(
-                name = "${matchedFood.replaceFirstChar { it.uppercase() }} (${grams.toInt()}g)",
-                servingSize = "${"%.0f".format(grams)}g",
-                calories   = "%.1f".format(matchedNutrients.cal       * ratio).toDouble(),
-                protein    = "%.1f".format(matchedNutrients.prot      * ratio).toDouble(),
-                carbs      = "%.1f".format(matchedNutrients.carbs     * ratio).toDouble(),
-                fat        = "%.1f".format(matchedNutrients.fat       * ratio).toDouble(),
-                fiber      = "%.1f".format(matchedNutrients.fiber     * ratio).toDouble(),
-                sugar      = "%.1f".format(matchedNutrients.sugar     * ratio).toDouble(),
-                sodium     = "%.1f".format(matchedNutrients.sodium    * ratio).toDouble(),
-                potassium  = "%.1f".format(matchedNutrients.potassium * ratio).toDouble(),
-                calcium    = "%.1f".format(matchedNutrients.calcium   * ratio).toDouble(),
-                iron       = "%.1f".format(matchedNutrients.iron      * ratio).toDouble(),
-                vitaminC   = "%.1f".format(matchedNutrients.vitaminC  * ratio).toDouble(),
-                vitaminD   = "%.1f".format(matchedNutrients.vitaminD  * ratio).toDouble()
-            )
-        }
+        return matchedItems
+    }
 
-        return null
+    private fun calculateGrams(food: String, qty: Double, unit: String): Double {
+        val normalizedUnit = unit.lowercase().trim()
+        if (normalizedUnit.startsWith("g") || normalizedUnit.startsWith("gm")) {
+            return qty
+        }
+        if (normalizedUnit.startsWith("kg") || normalizedUnit.startsWith("kilo")) {
+            return qty * 1000.0
+        }
+        return when (food) {
+            "egg" -> qty * 50.0
+            "roti", "chapati" -> qty * 40.0
+            "banana" -> qty * 120.0
+            "apple" -> qty * 182.0
+            "aloo paratha" -> qty * 150.0
+            "paratha" -> qty * 100.0
+            else -> {
+                if (normalizedUnit.startsWith("cup") || normalizedUnit.startsWith("bowl")) {
+                    qty * 200.0
+                } else if (normalizedUnit.startsWith("plate")) {
+                    qty * 300.0
+                } else {
+                    qty * 100.0
+                }
+            }
+        }
+    }
+
+    private fun parseDoubleOrFraction(valStr: String): Double {
+        if (valStr.isEmpty()) return 1.0
+        if (valStr.contains("/")) {
+            val parts = valStr.split("/")
+            if (parts.size == 2) {
+                try {
+                    val num = parts[0].toDouble()
+                    val den = parts[1].toDouble()
+                    if (den != 0.0) return num / den
+                } catch (e: Exception) {
+                    // ignore
+                }
+            }
+        }
+        return valStr.toDoubleOrNull() ?: 1.0
     }
 
     private fun extractGrams(text: String): Double? {
