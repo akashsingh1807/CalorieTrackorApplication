@@ -48,7 +48,7 @@ public class FoodDataImportRunner implements CommandLineRunner {
                 BigDecimal fat = new BigDecimal(parts[2].replaceAll("\"", "").trim());
                 BigDecimal carb = new BigDecimal(parts[3].replaceAll("\"", "").trim());
                 FoodConversionFactor entity = FoodConversionFactor.builder()
-                        .factorId(id)
+                        .id(id)
                         .proteinValue(protein)
                         .fatValue(fat)
                         .carbohydrateValue(carb)

@@ -50,9 +50,8 @@ public class GeminiFoodInfoService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(geminiApiKey);
 
-            HttpEntity<String> entity = new HttpEntity<>(requestBody.toString(), headers);
-
-            ResponseEntity<String> response = restTemplate.exchange(geminiUrl, HttpMethod.POST, entity, String.class);
+            HttpEntity<String> requestEntity = new HttpEntity<>(requestBody.toString(), headers);
+            ResponseEntity<String> response = restTemplate.exchange(geminiUrl, HttpMethod.POST, requestEntity, String.class);
             if (response.getStatusCode() != HttpStatus.OK) {
                 return null;
             }

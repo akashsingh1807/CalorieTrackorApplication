@@ -1,1 +1,6 @@
 /backend/google-cloud-sdk/
+**/firebase-service-account.json
+*.xlsx
+*project_info.json
+*screens_info.json
+*get_project_schema.json

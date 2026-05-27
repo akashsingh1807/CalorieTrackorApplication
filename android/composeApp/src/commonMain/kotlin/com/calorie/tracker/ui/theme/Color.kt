@@ -2,58 +2,62 @@ package com.calorie.tracker.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Flip7 Teal -> Black/White/Grays
-val PrimaryTeal = Color.Black
-val PrimaryLight = Color.DarkGray
-val PrimaryDark = Color.Black
-val PrimaryBG = Color(0xFFF1F1F1)
+// Journable Design System Colors (Forest-to-Mint Green Theme)
+val PrimaryGreen = Color(0xFF0F5238)
+val SecondaryGreen = Color(0xFF2B694D)
+val TertiaryGreen = Color(0xFF364D3C)
 
-// Flip7 Gold -> Grays
-val AccentGold = Color.Black
-val AccentLight = Color.LightGray
-val AccentDark = Color.DarkGray
+// Surface Neutrals
+val GreenBackground = Color(0xFFE8FFF0)
+val CreamSurface = Color(0xFFE8FFF0)
+val SurfaceCard = Color(0xFFFFFFFF)
 
-// Flip7 Coral -> Grays
-val CoralPrimary = Color.Black
-val CoralLight = Color.LightGray
-val CoralDark = Color.DarkGray
+// Compatibility Colors for older UI screens
+val PrimaryTeal = PrimaryGreen
+val PrimaryLight = SecondaryGreen
+val PrimaryDark = PrimaryGreen
+val PrimaryBG = GreenBackground
+val AccentGold = Color(0xFFE7C15C)
+val AccentLight = Color(0xFFF9E7B9)
+val AccentDark = Color(0xFFB58E23)
+val CoralPrimary = Color(0xFFF28B82)
+val CoralLight = Color(0xFFFCD0CF)
+val CoralDark = Color(0xFFC53929)
+val SkyBlue = Color(0xFF8AB4F8)
+val SurfaceBase = SurfaceCard
 
-// Other Flip7 Colors
-val CreamSurface = Color(0xFFF5F5F5)
-val SkyBlue = Color.DarkGray
-val SurfaceBase = Color(0xFFFFFFFF)
-val SurfaceCard = Color.White
 
 // Semantic Colors
-val SuccessColor = Color.Black
-val ErrorColor = Color.Black
-val WarningColor = Color.DarkGray
-val InfoColor = Color.LightGray
+val SuccessColor = Color(0xFF2D6A4F)
+val ErrorColor = Color(0xFFBA1A1A)
+val WarningColor = Color(0xFFE7C15C)
+val InfoColor = Color(0xFF327053)
 
 // Light Mode mappings
-val md_theme_light_primary = Color.Black
-val md_theme_light_onPrimary = Color.White
-val md_theme_light_secondary = Color.DarkGray
-val md_theme_light_onSecondary = Color.White
-val md_theme_light_tertiary = Color.LightGray
-val md_theme_light_onTertiary = Color.Black
-val md_theme_light_background = Color.White
-val md_theme_light_onBackground = Color.Black
-val md_theme_light_surface = Color.White
-val md_theme_light_onSurface = Color.Black
-val md_theme_light_error = Color.Black
-val md_theme_light_onError = Color.White
+val md_theme_light_primary = Color(0xFF0F5238)
+val md_theme_light_onPrimary = Color(0xFFFFFFFF)
+val md_theme_light_secondary = Color(0xFF2B694D)
+val md_theme_light_onSecondary = Color(0xFFFFFFFF)
+val md_theme_light_tertiary = Color(0xFF364D3C)
+val md_theme_light_onTertiary = Color(0xFFFFFFFF)
+val md_theme_light_background = Color(0xFFE8FFF0)
+val md_theme_light_onBackground = Color(0xFF002114)
+val md_theme_light_surface = Color(0xFFE8FFF0)
+val md_theme_light_onSurface = Color(0xFF002114)
+val md_theme_light_error = Color(0xFFBA1A1A)
+val md_theme_light_onError = Color(0xFFFFFFFF)
 
-// Dark Mode mappings
-val md_theme_dark_primary = Color.White
-val md_theme_dark_onPrimary = Color.Black
-val md_theme_dark_secondary = Color.LightGray
-val md_theme_dark_onSecondary = Color.Black
-val md_theme_dark_tertiary = Color.DarkGray
-val md_theme_dark_onTertiary = Color.White
-val md_theme_dark_background = Color.Black
-val md_theme_dark_onBackground = Color.White
-val md_theme_dark_surface = Color.Black
-val md_theme_dark_onSurface = Color.White
-val md_theme_dark_error = Color.White
-val md_theme_dark_onError = Color.Black
+// Dark Mode mappings (kept bright per design system specifications)
+val md_theme_dark_primary = Color(0xFF95D4B3)
+val md_theme_dark_onPrimary = Color(0xFF002114)
+val md_theme_dark_secondary = Color(0xFF94D4B1)
+val md_theme_dark_onSecondary = Color(0xFF002113)
+val md_theme_dark_tertiary = Color(0xFFB3CDB7)
+val md_theme_dark_onTertiary = Color(0xFF092012)
+val md_theme_dark_background = Color(0xFFE8FFF0)
+val md_theme_dark_onBackground = Color(0xFF002114)
+val md_theme_dark_surface = Color(0xFFE8FFF0)
+val md_theme_dark_onSurface = Color(0xFF002114)
+val md_theme_dark_error = Color(0xFFBA1A1A)
+val md_theme_dark_onError = Color(0xFFFFFFFF)
+

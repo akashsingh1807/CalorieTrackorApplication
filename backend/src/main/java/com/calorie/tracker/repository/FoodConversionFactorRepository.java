@@ -9,8 +9,14 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface FoodConversionFactorRepository extends JpaRepository<FoodConversionFactor, Long> {
+    // Exact phrase match (case‑insensitive)
+    @Query("SELECT f FROM FoodConversionFactor f WHERE LOWER(f.name) = LOWER(:name)")
+    List<FoodConversionFactor> findExact(@Param("name") String name);
+
+    // Simple containment search (case‑insensitive)
     List<FoodConversionFactor> findByNameContainingIgnoreCase(String name);
-    // Additional query methods can be added here if needed
+
+    // Fuzzy search using LIKE with surrounding %
     @Query("SELECT f FROM FoodConversionFactor f WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', :name, '%'))")
     List<FoodConversionFactor> fuzzyFindByName(@Param("name") String name);
 }

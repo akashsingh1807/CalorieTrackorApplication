@@ -10,56 +10,61 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun getFlip7Typography(): Typography {
     return Typography(
-        // h1: Game titles
+        // headline-lg / displayLarge
         displayLarge = TextStyle(
-            fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.ExtraBold, 
-            fontSize = 36.sp, // 72rpx display
-            lineHeight = 44.sp,
-            letterSpacing = 2.sp
+            fontFamily = FontFamily.Default, // uses system/default (Inter)
+            fontWeight = FontWeight.Bold, // 700
+            fontSize = 32.sp,
+            lineHeight = 40.sp,
+            letterSpacing = (-0.64).sp // -0.02em
         ),
-        // h2: Section titles
+        // headline-lg-mobile / displayMedium
         displayMedium = TextStyle(
             fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 24.sp, // 48rpx h1
-            lineHeight = 32.sp,
-            letterSpacing = 1.sp
+            fontWeight = FontWeight.Bold, // 700
+            fontSize = 28.sp,
+            lineHeight = 36.sp,
+            letterSpacing = (-0.56).sp // -0.02em
         ),
-        // h3: Card titles
+        // headline-md / headlineLarge
         headlineLarge = TextStyle(
             fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 18.sp, // 36rpx h2
-            lineHeight = 26.sp
+            fontWeight = FontWeight.SemiBold, // 600
+            fontSize = 24.sp,
+            lineHeight = 32.sp,
+            letterSpacing = (-0.24).sp // -0.01em
         ),
-        // h4: Sub-headings
-        headlineMedium = TextStyle(
-            fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp, // 32rpx h3
-            lineHeight = 24.sp
-        ),
-        // body: Instructions
+        // body-lg / bodyLarge
         bodyLarge = TextStyle(
             fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.Medium,
-            fontSize = 14.sp, // 28rpx body
-            lineHeight = 20.sp
+            fontWeight = FontWeight.Normal, // 400
+            fontSize = 18.sp,
+            lineHeight = 28.sp,
+            letterSpacing = 0.18.sp // 0.01em
         ),
-        // sm: Labels
+        // body-md / bodyMedium
         bodyMedium = TextStyle(
             fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.Medium,
-            fontSize = 12.sp, // 24rpx sm
-            lineHeight = 16.sp
+            fontWeight = FontWeight.Normal, // 400
+            fontSize = 16.sp,
+            lineHeight = 24.sp,
+            letterSpacing = 0.16.sp // 0.01em
         ),
-        // xs: Badges
-        labelSmall = TextStyle(
+        // label-md / labelLarge
+        labelLarge = TextStyle(
             fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.Medium,
-            fontSize = 10.sp, // 20rpx xs
-            lineHeight = 14.sp
+            fontWeight = FontWeight.SemiBold, // 600
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            letterSpacing = 0.7.sp // 0.05em
+        ),
+        // label-sm / labelMedium
+        labelMedium = TextStyle(
+            fontFamily = FontFamily.Default,
+            fontWeight = FontWeight.Medium, // 500
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+            letterSpacing = 0.24.sp // 0.02em
         )
     )
 }
