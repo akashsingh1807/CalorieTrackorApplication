@@ -24,7 +24,16 @@ class FakeAuthRepository : AuthRepository {
     override fun saveToken(token: String) { loggedIn = true }
     override fun isLoggedIn(): Boolean = loggedIn
     override fun getToken(): String? = if (loggedIn) "fake_token" else null
-    override fun clearToken() { loggedIn = false }
+    override fun clearToken() { 
+        loggedIn = false 
+        hasCompletedOnboarding = false
+    }
+    
+    var hasCompletedOnboarding = false
+    override fun hasCompletedOnboarding(): Boolean = hasCompletedOnboarding
+    override fun setHasCompletedOnboarding(completed: Boolean) {
+        hasCompletedOnboarding = completed
+    }
 }
 
 class FakeMealRepository : MealRepository {

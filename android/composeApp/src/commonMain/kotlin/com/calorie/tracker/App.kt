@@ -72,7 +72,7 @@ fun App(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    var hasCompletedOnboarding by remember { mutableStateOf(false) }
+    var hasCompletedOnboarding by remember { mutableStateOf(authRepository.hasCompletedOnboarding()) }
 
     val handleLogout = {
         authRepository.clearToken()
@@ -95,10 +95,16 @@ fun App(
                     proteinGoalPct = profile.dailyProteinGoal
                     fatGoalPct = profile.dailyFatGoal
                     userWeight = profile.weight
-                    hasCompletedOnboarding = true
+                    if (!hasCompletedOnboarding) {
+                        hasCompletedOnboarding = true
+                        authRepository.setHasCompletedOnboarding(true)
+                    }
                 } else {
                     // Profile height is 0.0 but onboarding completed locally
-                    hasCompletedOnboarding = true
+                    if (!hasCompletedOnboarding) {
+                        hasCompletedOnboarding = true
+                        authRepository.setHasCompletedOnboarding(true)
+                    }
                 }
             }?.onFailure { e ->
                 println("CalorieApp: getProfile failed with error: ${e.message}")
@@ -254,6 +260,7 @@ fun App(
                                         
                                         if (result?.isSuccess == true || apiClient == null) {
                                             hasCompletedOnboarding = true
+                                            authRepository.setHasCompletedOnboarding(true)
                                             calorieGoal = targetCalories
                                             carbsGoalPct = 50
                                             proteinGoalPct = 30
@@ -264,6 +271,7 @@ fun App(
                                             println("CalorieApp: updateProfile failed with error: ${result?.exceptionOrNull()?.message}")
                                             // Fallback local navigation if backend fails
                                             hasCompletedOnboarding = true
+                                            authRepository.setHasCompletedOnboarding(true)
                                             calorieGoal = targetCalories
                                             carbsGoalPct = 50
                                             proteinGoalPct = 30

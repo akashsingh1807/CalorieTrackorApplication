@@ -8,4 +8,6 @@ interface AuthRepository {
     fun getToken(): String?
     fun clearToken()
     fun isLoggedIn(): Boolean
+    fun hasCompletedOnboarding(): Boolean
+    fun setHasCompletedOnboarding(completed: Boolean)
 }

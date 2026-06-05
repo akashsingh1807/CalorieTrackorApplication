@@ -17,6 +17,7 @@ class AndroidAuthRepository(
 
     companion object {
         private const val KEY_TOKEN = "auth_token"
+        private const val KEY_ONBOARDING = "has_completed_onboarding"
     }
 
     override suspend fun login(email: String, password: String): Result<String> {
@@ -55,7 +56,7 @@ class AndroidAuthRepository(
     }
 
     override fun clearToken() {
-        prefs.edit().remove(KEY_TOKEN).apply()
+        prefs.edit().remove(KEY_TOKEN).remove(KEY_ONBOARDING).apply()
         apiClient.clearAuthToken()
     }
 
@@ -66,5 +67,13 @@ class AndroidAuthRepository(
             return true
         }
         return false
+    }
+
+    override fun hasCompletedOnboarding(): Boolean {
+        return prefs.getBoolean(KEY_ONBOARDING, false)
+    }
+
+    override fun setHasCompletedOnboarding(completed: Boolean) {
+        prefs.edit().putBoolean(KEY_ONBOARDING, completed).apply()
     }
 }

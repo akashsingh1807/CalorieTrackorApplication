@@ -14,6 +14,7 @@ class IosAuthRepository(
 
     companion object {
         private const val KEY_TOKEN = "auth_token"
+        private const val KEY_ONBOARDING = "has_completed_onboarding"
     }
 
     override suspend fun login(email: String, password: String): Result<String> {
@@ -49,6 +50,7 @@ class IosAuthRepository(
 
     override fun clearToken() {
         userDefaults.removeObjectForKey(KEY_TOKEN)
+        userDefaults.removeObjectForKey(KEY_ONBOARDING)
         apiClient.clearAuthToken()
     }
 
@@ -59,5 +61,13 @@ class IosAuthRepository(
             return true
         }
         return false
+    }
+
+    override fun hasCompletedOnboarding(): Boolean {
+        return userDefaults.boolForKey(KEY_ONBOARDING)
+    }
+
+    override fun setHasCompletedOnboarding(completed: Boolean) {
+        userDefaults.setBool(completed, forKey = KEY_ONBOARDING)
     }
 }

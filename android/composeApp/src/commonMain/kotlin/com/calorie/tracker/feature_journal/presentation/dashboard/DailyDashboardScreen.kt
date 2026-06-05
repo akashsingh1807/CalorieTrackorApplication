@@ -27,16 +27,16 @@ import kotlinx.coroutines.delay
 // --- State Models ---
 
 sealed interface ChatScreenState {
-    data object Loading : ChatScreenState() // Initial screen load
+    data object Loading : ChatScreenState // Initial screen load
     
     data class Success(
         val dailyMacros: DailyMacroSummary,
         val messages: List<FoodMessage>,
         val isTyping: Boolean = false, // Controls the 3-dot typing indicator
         val inputText: String = ""
-    ) : ChatScreenState()
+    ) : ChatScreenState
     
-    data class Error(val message: String) : ChatScreenState()
+    data class Error(val message: String) : ChatScreenState
 }
 
 data class DailyMacroSummary(
