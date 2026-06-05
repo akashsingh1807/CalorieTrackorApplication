@@ -1,118 +1,93 @@
-# CalorieTrackorApplication
+# CalorieTrackor Application
 
-This repository contains the full stack implementation of the Calorie Trackor Application.
+## Complete Architecture & Project Structure
 
-## Architecture Documentation
+### 1. High-Level Design (HLD)
+The CalorieTrackerApplication is a full-stack web application designed to help users track their daily nutritional intake, water consumption, and body weight. 
+The system architecture follows a classic Client-Server model.
+- **Frontend**: A mobile application built with Kotlin Multiplatform (KMP) and Compose Multiplatform. It natively targets Android (and iOS) utilizing an MVVM architecture, providing an intuitive dashboard, food logging capabilities, and AI-powered nutritional insights.
+- **Backend**: A robust RESTful API built with Java and Spring Boot. It handles business logic, user authentication, and data persistence.
+- **Database**: PostgreSQL (or similar relational database) for storing user profiles, daily logs, and food metadata.
+- **AI Integration**: Integrates with Google's Gemini AI to parse natural language food descriptions and calculate precise macronutrients and calories.
 
-This section outlines both the High-Level Design (HLD) and Low-Level Design (LLD) of the application, detailing the system's architecture, components, and data flow.
+#### Data Flow
+1. **User Action**: The user interacts with the UI (e.g., enters "2 boiled eggs and toast" in the AI Insights page).
+2. **Frontend Request**: The KMP app (Android/iOS) makes an HTTP POST request to the Spring Boot backend (`/api/ai/text`) via its API client.
+3. **Backend Processing**:
+   - The Spring Security layer authenticates the JWT token.
+   - The `AIController` routes the request to the `GeminiFoodInfoService`.
+   - The service constructs a detailed prompt with strict schema instructions and calls the Gemini API via a `RestTemplate`.
+4. **AI Inference**: Gemini processes the natural language, estimates macros, and returns a strictly formatted JSON response including a step-by-step reasoning block.
+5. **Data Persistence**: The backend caches/saves the AI response in the database (`FoodInfoRepository`) to avoid redundant API calls for future exact queries.
+6. **Frontend Update**: The backend returns the JSON to the frontend, which dynamically renders the estimated calories, protein, carbs, and fats inline in a clear UI format natively using Jetpack/Compose Multiplatform.
 
 ---
 
-## 1. High-Level Design (HLD)
+### 2. Low-Level Design (LLD)
 
-The system follows a standard modern Client-Server and Microservices-oriented architecture using a Java Spring Boot backend, a Next.js web application, and an Android client.
+#### Mobile Frontend (Kotlin Multiplatform)
+- **Architecture**: MVVM (Model-View-ViewModel) pattern separating UI logic from business logic.
+- **UI Framework**: Compose Multiplatform for shared UI across Android and iOS.
+- **Local Data Storage**: Room Database used in `androidMain` with DAOs (`WaterDao`, `MealDao`, `WeightDao`) for robust offline caching.
+- **Networking**: Configured API Client (`CalorieApiClient.kt`) to interface securely with the Spring Boot backend.
+#### Authentication & Security
+- **JWT (JSON Web Tokens)**: Used for stateless, scalable authentication.
+- **Spring Security**: Configured with `SecurityConfig`, `JwtAuthenticationFilter`, and `AuthEntryPointJwt` to intercept and secure all private API endpoints.
 
-### System Architecture Diagram
+#### Controllers & Routing
+- `AuthController`: Handles registration, login, and JWT generation.
+- `MealController`: Handles CRUD operations for daily meal logs.
+- `AIController`: Exposes endpoints for AI text analysis.
+- `WaterController`, `WeightController`, `AnalyticsController`: Manage corresponding user tracking features.
 
-```mermaid
-graph TD
-    ClientWeb[Web Frontend<br/>Next.js + React] -->|HTTPS / REST| Ingress[Ingress / Load Balancer]
-    ClientApp[Android App<br/>KMP + Compose] -->|HTTPS / REST| Ingress
-    
-    Ingress --> Backend[Backend Server<br/>Spring Boot]
-    
-    Backend -->|JDBC| DB[(Primary Database<br/>PostgreSQL)]
-    Backend -->|Lettuce/Jedis| Cache[(Cache<br/>Redis)]
-    Backend -->|S3 API| Storage[Object Storage<br/>MinIO]
-    Backend -->|Auth| Firebase[Firebase Admin Auth]
+#### Services & Business Logic
+- `GeminiFoodInfoService`: Handles the core logic of communicating with the Gemini API, structuring the system instruction to force JSON output with specific macros, estimating standard serving sizes, and validating the response.
+- `NutritionService`: Aggregates user daily macros, calculates remaining goals, and drives the dashboard metrics.
+- `AuthService`: Manages user registration, password hashing, and token issuance.
+
+#### Data Models & Repositories (JPA)
+- `User`: Stores user credentials and profile (age, weight, goal).
+- `Meal`, `FoodItem`: Represents logged meals and individual food entries.
+- `FoodInfo`: Caches AI responses locally.
+- `WeightLog`, `WaterLog`: Time-series data for tracking metrics over time.
+
+---
+
+### 3. Project Structure
+
+#### Backend (Spring Boot / Java)
+```text
+backend/src/main/java/com/calorie/tracker/
+├── config/              # Application, Database, and Security configurations
+├── controller/          # REST API endpoints (AuthController, AIController, MealController, etc.)
+├── dto/                 # Data Transfer Objects for API requests/responses (GeminiFoodResponseDto, etc.)
+├── migration/           # Database migration scripts
+├── model/               # JPA Entities (User, Meal, FoodInfo, WeightLog, etc.)
+├── repository/          # Spring Data JPA interfaces (UserRepository, MealRepository, etc.)
+├── security/            # JWT filters, custom UserDetailsService, and security entry points
+└── service/             # Business logic (GeminiFoodInfoService, AuthService, MealService, etc.)
 ```
 
-### Typical Request Flow (Example: Logging a Meal)
-1. **User Action (UI):** The user fills out the meal logging form in the Next.js Frontend (`frontend/src/app/log-meal/page.tsx`) or Android App and submits it.
-2. **API Request:** The client sends an HTTP POST request containing the meal details (and JWT token) to the backend API via Axios/Ktor.
-3. **Authentication Filter:** The Spring Security `JwtAuthenticationFilter` intercepts the request, verifies the JWT token (and optionally checks via Firebase Admin), and sets the security context.
-4. **Controller Routing:** The `MealController.java` receives the validated request mapped to `/api/meals`.
-5. **Business Logic:** The `MealService.java` processes the DTO, maps it to a `Meal` entity, calculates nutritional value (using caching from `FoodAnalysisCacheRepository` if AI analysis is needed), and associates it with the authenticated user.
-6. **Data Persistence:** The `MealRepository.java` saves the meal details into the PostgreSQL database.
-7. **Response:** The backend returns a mapped `MealResponse` DTO to the client.
-8. **UI Update:** The client updates the user's dashboard to reflect the newly logged calories.
+#### Frontend (Kotlin Multiplatform / Android)
+```text
+android/composeApp/src/
+├── commonMain/kotlin/com/calorie/tracker/
+│   ├── core/            # Core networking (CalorieApiClient) and UI elements (SpeechRecognizer, ImagePicker)
+│   ├── feature_auth/    # Authentication ViewModels, Repositories, and Screens (AuthScreen, OnboardingScreen)
+│   ├── feature_journal/ # Core features (Dashboard, WaterTracker, WeightTracker) and their ViewModels/Repositories
+│   ├── model/           # Shared Kotlin data models mapping to backend DTOs
+│   └── ui/              # Global Compose theme (Color, Shape, Type, Components)
+├── androidMain/kotlin/com/calorie/tracker/
+│   ├── core/database/   # Local Room Database configuration (AppDatabase)
+│   ├── feature_*/data/  # Android-specific local data sources and DAOs (MealDao, WaterDao, WeightDao)
+│   └── MainActivity.kt  # Android application entry point
+└── iosMain/kotlin/com/calorie/tracker/
+    └── feature_*/data/  # iOS-specific implementations and bindings
+```
 
 ---
 
-## 2. Low-Level Design (LLD) & Detailed Project Structure
-
-### 2.1 Backend Server (Java Spring Boot)
-
-The backend follows the **N-Tier Layered Architecture**. Below is the detailed structure of `backend/src/main/java/com/calorie/tracker/`:
-
-- **`controller/`**: REST API endpoints mapping incoming HTTP requests to business logic.
-  - `AuthController.java`: Handles user login and registration.
-  - `MealController.java`, `WaterController.java`, `WeightController.java`: Manage core tracking entities.
-  - `AIController.java`, `FoodController.java`, `IndianFoodController.java`: AI integrations and food catalog search.
-  - `AnalyticsController.java`: Aggregates data for charts and dashboards.
-  - `MediaController.java`: Handles uploads/downloads of images to MinIO.
-  - `NotificationController.java`: Handles user alerts.
-- **`service/`**: Core business logic and transaction management.
-  - `AuthService.java`: JWT generation and validation.
-  - `MealService.java`, `WaterService.java`, `WeightService.java`: CRUD operations and business rules.
-  - `GeminiVisionService.java`, `GeminiFoodInfoService.java`: External AI service integrations.
-  - `S3Service.java`: MinIO object storage operations.
-  - `AnalyticsService.java`: Aggregates usage data.
-- **`repository/`**: Spring Data JPA interfaces for database interaction.
-  - `UserRepository.java`, `MealRepository.java`, `WaterRepository.java`, `WeightLogRepository.java`.
-  - `FoodInfoRepository.java`, `IndianFoodRepository.java`.
-  - `AiRequestRepository.java`, `FoodAnalysisCacheRepository.java`.
-- **`model/` (Entities):** JPA definitions mapping to database tables.
-  - Core tables: `User.java`, `Meal.java`, `WaterLog.java`, `WeightLog.java`, `FastingLog.java`.
-  - Catalog tables: `FoodItem.java`, `IndianFood.java`, `FoodInfo.java`.
-  - Enums: `GoalType.java`, `MealType.java`, `Role.java`, `Lifestyle.java`.
-- **`dto/`**: Data Transfer Objects to shape API inputs/outputs.
-  - `AuthRequest.java`, `RegisterRequest.java`, `MealRequest.java`, `MealResponse.java`, etc.
-- **`security/`**: Configuration and filters for securing the application.
-  - `SecurityConfig.java`: Spring Security filter chains and CORS configuration.
-  - `JwtAuthenticationFilter.java`: Intercepts and parses JWT tokens from requests.
-  - `CustomUserDetailsService.java`: Loads user details for security contexts.
-- **`config/`**: Global configurations and startup seeders.
-  - `OpenApiConfig.java`: Swagger UI setup.
-  - `FirestoreConfig.java`: Firebase integration.
-
-### 2.2 Frontend Web (Next.js & React)
-
-The web frontend utilizes the **Next.js App Router** structure located in `frontend/src/`:
-
-- **`app/` (Pages and Routing):**
-  - `layout.tsx` & `globals.css`: Global layout wrapper and CSS resets.
-  - `page.tsx`: Landing page.
-  - `auth/login/page.tsx`, `auth/register/page.tsx`: Authentication flows.
-  - `dashboard/page.tsx`: Main user dashboard for daily summaries.
-  - `log-meal/page.tsx`, `water/page.tsx`, `weight/page.tsx`: Pages for logging tracking metrics.
-  - `analytics/page.tsx`: Visualization charts.
-  - `profile/page.tsx`: User profile management.
-  - `ai/page.tsx`: AI food analysis interface.
-- **`components/`**: Reusable UI elements.
-  - `Navbar.tsx`: Top navigation bar.
-  - `ClientLayout.tsx`: Wraps layout logic dependent on the window/client.
-- **`context/`**: React Context for global state management.
-  - `AuthContext.tsx`: Manages user session tokens and logged-in state across the application.
-- **`lib/`**: Utility functions and configurations.
-  - `api.ts`: Centralized Axios instance configuration for backend communication.
-
-### 2.3 Mobile Client (Android)
-
-Built using **Kotlin Multiplatform (KMP) & Jetpack Compose**. The structure inside `android/`:
-
-- `composeApp/`: Contains the primary shared UI logic and Android specific implementations.
-- `build.gradle.kts` & `settings.gradle.kts`: Gradle build scripts configuring Compose, KMP, and Google Services.
-
----
-
-## 3. Infrastructure & Deployment
-
-- **Containerization:** The `backend` provides a `Dockerfile`, and the whole stack can be spun up using `docker-compose.yml` which configures:
-  - Spring Boot App
-  - PostgreSQL Database
-  - Redis Cache
-  - MinIO Storage
-- **Kubernetes:** The `k8s/` directory contains manifests (`backend.yaml`) to deploy the application as a Deployment and Service into a Kubernetes cluster.
-- **Testing Scripts:** Included in the root to test endpoints:
-  - `test_all_apis.sh`, `test_comprehensive.sh`, `test_full_flow.sh`, `generate_tests.py`
+### 4. AI Feature Integration (Gemini)
+The application features a clinical nutritional analysis engine powered by Gemini.
+- **Prompt Strategy**: The system forces a strict JSON output format ensuring properties like `reasoning`, `isFood`, `foodName`, `calories`, `protein`, `carbohydrates`, and `fat` are always predictably structured.
+- **Inline UI**: Results are presented inline directly within the AI Insights page. The visual camera/image upload functionality has been removed in favor of a clean, text-based workflow that shows AI reasoning in a raw text box seamlessly on the same page.

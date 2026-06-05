@@ -162,27 +162,7 @@ fun DashboardScreen(
     // ── AI Analysis Dialogs ──────────────────────────────────
     when (val state = analysisState) {
         is MealAnalysisState.Analyzing -> {
-            Dialog(onDismissRequest = {}) {
-                Flip7Card() {
-                    Column(
-                        modifier = Modifier.padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        CircularProgressIndicator(color = Color.Black)
-                        Text(
-                            text = "Analyzing your food...",
-                            fontWeight = FontWeight.Medium,
-                            color = Color.DarkGray
-                        )
-                        Text(
-                            text = "Getting accurate nutrition data",
-                            fontSize = 12.sp,
-                            color = Color.Gray
-                        )
-                    }
-                }
-            }
+            // Analyzing state is now shown inline in the bottom bar
         }
         is MealAnalysisState.PendingConfirmation -> {
             FoodConfirmationDialog(
@@ -306,40 +286,66 @@ fun DashboardScreen(
                     .imePadding(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextField(
-                    value = queryText,
-                    onValueChange = { queryText = it },
-                    placeholder = { Text("What did you eat or exercise?", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), fontSize = 14.sp) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .heightIn(min = 52.dp, max = 120.dp),
-                    maxLines = 4,
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent
-                    ),
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Send
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onSend = {
-                            submitMealText(queryText)
-                        }
-                    ),
-                    trailingIcon = {
-                        if (queryText.isNotBlank()) {
-                            IconButton(onClick = { submitMealText(queryText) }) {
-                                Icon(Icons.Default.Send, contentDescription = "Send", tint = MaterialTheme.colorScheme.onSurface)
+                val isAnalyzing = analysisState is MealAnalysisState.Analyzing
+                
+                if (isAnalyzing) {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 52.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(26.dp))
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Analyzing your food...",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 14.sp
+                        )
+                    }
+                } else {
+                    TextField(
+                        value = queryText,
+                        onValueChange = { queryText = it },
+                        placeholder = { Text("What did you eat or exercise?", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), fontSize = 14.sp) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 52.dp, max = 120.dp),
+                        maxLines = 4,
+                        shape = RoundedCornerShape(26.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent
+                        ),
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Send
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onSend = {
+                                submitMealText(queryText)
+                            }
+                        ),
+                        trailingIcon = {
+                            if (queryText.isNotBlank()) {
+                                IconButton(onClick = { submitMealText(queryText) }) {
+                                    Icon(Icons.Default.Send, contentDescription = "Send", tint = MaterialTheme.colorScheme.onSurface)
+                                }
                             }
                         }
-                    }
-                )
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
