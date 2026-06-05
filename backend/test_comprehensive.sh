@@ -117,7 +117,7 @@ curl -s -X POST "${BASE_URL}/ai/analyze-text" \
 echo -e "\n"
 
 echo "=== 19. AI: Image Detection via Upload ==="
-SAMOSA_IMAGE="/Users/akashsingh/.gemini/antigravity/brain/60d6446e-09ff-45d2-8bdf-c7213a6e323d/samosas_test_image_1778875333059.png"
+SAMOSA_IMAGE="/Users/akashsingh/IdeaProjects/CalorieTrackorApplication/android/screenshot.png"
 UPLOAD_RES=$(curl -s -X POST "${BASE_URL}/media/upload" \
   -H "$HEADER" \
   -F "file=@${SAMOSA_IMAGE}")

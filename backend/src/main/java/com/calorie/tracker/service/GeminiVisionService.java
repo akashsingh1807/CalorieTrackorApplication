@@ -4,6 +4,7 @@ import com.calorie.tracker.dto.FoodItemDto;
 import com.calorie.tracker.model.AiRequest;
 import com.calorie.tracker.model.FoodAnalysisCache;
 import com.calorie.tracker.repository.AiRequestRepository;
+import com.calorie.tracker.repository.FirestoreFoodRepository;
 import com.calorie.tracker.repository.FoodAnalysisCacheRepository;
 import com.calorie.tracker.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -19,9 +20,11 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,6 +50,9 @@ public class GeminiVisionService {
 
     @Autowired
     private FoodAnalysisCacheRepository foodAnalysisCacheRepository;
+
+    @Autowired
+    private FirestoreFoodRepository firestoreFoodRepository;
 
     public GeminiVisionService() {
         this.webClient = WebClient.builder()
@@ -210,35 +216,74 @@ public class GeminiVisionService {
         String scaledCacheKey = personaStr + ":scaled:" + parsed.baseFood + ":" + parsed.unit;
         String exactCacheKey = personaStr + ":exact:" + normalizedQuery;
 
+        logger.info("=========================================");
+        logger.info("🔍 START FOOD SEARCH FLOW");
+        logger.info("   • Raw Input: '{}'", text);
+        logger.info("   • Persona:   '{}'", personaStr);
+        logger.info("   • Parsed:    baseFood='{}', quantity={}, unit='{}'", parsed.baseFood, parsed.quantity, parsed.unit);
+        logger.info("   • Keys:      exact='{}', scaled='{}'", exactCacheKey, scaledCacheKey);
+        logger.info("=========================================");
+
         // 1. Try scaled cache (for single items)
         if (parsed.isValid()) {
+            logger.info("[Step 1/4] Checking PostgreSQL Scaled Cache with key: '{}'...", scaledCacheKey);
             try {
                 var cached = foodAnalysisCacheRepository.findByQueryKey(scaledCacheKey);
                 if (cached.isPresent()) {
-                    logger.info("Scaled cache hit for key: {}. Scaling by factor: {}", scaledCacheKey, parsed.quantity);
+                    logger.info("🎯 [Step 1 Result] PostgreSQL Scaled Cache HIT! Scaling by factor: {}", parsed.quantity);
                     List<FoodItemDto> baseItems = objectMapper.readValue(cached.get().getResponseJson(), new TypeReference<List<FoodItemDto>>() {});
                     if (baseItems.size() == 1) {
                         FoodItemDto scaledItem = scaleFoodItem(baseItems.get(0), parsed.quantity, parsed.quantity, parsed.unit);
+                        logger.info("💾 Returning scaled cached item: {}", scaledItem.getName());
                         return List.of(scaledItem);
                     }
+                } else {
+                    logger.info("⚠️ [Step 1 Result] PostgreSQL Scaled Cache MISS.");
                 }
             } catch (Exception e) {
                 logger.error("Error reading scaled cache for key {}: {}", scaledCacheKey, e.getMessage(), e);
             }
+        } else {
+            logger.info("[Step 1/4] Skipping Scaled Cache (invalid query format for single item scaling).");
         }
 
         // 2. Try exact cache
+        logger.info("[Step 2/4] Checking PostgreSQL Exact Cache with key: '{}'...", exactCacheKey);
         try {
             var cached = foodAnalysisCacheRepository.findByQueryKey(exactCacheKey);
             if (cached.isPresent()) {
-                logger.info("Exact cache hit for key: {}.", exactCacheKey);
-                return objectMapper.readValue(cached.get().getResponseJson(), new TypeReference<List<FoodItemDto>>() {});
+                logger.info("🎯 [Step 2 Result] PostgreSQL Exact Cache HIT!");
+                List<FoodItemDto> items = objectMapper.readValue(cached.get().getResponseJson(), new TypeReference<List<FoodItemDto>>() {});
+                logger.info("💾 Returning exact cached list of {} item(s).", items.size());
+                return items;
+            } else {
+                logger.info("⚠️ [Step 2 Result] PostgreSQL Exact Cache MISS.");
             }
         } catch (Exception e) {
             logger.error("Error reading exact cache for key {}: {}", exactCacheKey, e.getMessage(), e);
         }
 
-        // Cache miss -> call AI
+        // 3. Firestore lookup — try the raw query, split words, and common aliases
+        logger.info("[Step 3/4] Checking Firestore NoSQL Database for baseFood='{}', rawQuery='{}'...", parsed.baseFood, normalizedQuery);
+        Optional<FoodItemDto> firestoreHit = lookupInFirestore(parsed.baseFood, normalizedQuery);
+        if (firestoreHit.isPresent()) {
+            FoodItemDto base = firestoreHit.get();
+            logger.info("🎯 [Step 3 Result] Firestore HIT! Found food item: '{}'", base.getName());
+            // Scale the stored (1-serving) values to the requested quantity
+            double factor = parsed.isValid() ? parsed.quantity : 1.0;
+            String unit   = parsed.isValid() ? parsed.unit      : "piece";
+            FoodItemDto scaled = scaleFoodItem(base, factor, factor, unit);
+            List<FoodItemDto> firestoreResult = List.of(scaled);
+            
+            logger.info("💾 Saving Firestore hit to PostgreSQL exact cache to warm it.");
+            saveToPgCache(exactCacheKey, firestoreResult);
+            return firestoreResult;
+        } else {
+            logger.info("⚠️ [Step 3 Result] Firestore MISS.");
+        }
+
+        // 4. Cache miss -> call Gemini LLM
+        logger.info("[Step 4/4] Cache Miss on all local layers. Invoking Gemini LLM for query: '{}'...", text);
         logAiRequest(userId, "TEXT_ANALYSIS", text.length() / 2);
         
         String personaInstructions = "";
@@ -284,21 +329,11 @@ public class GeminiVisionService {
             List<FoodItemDto> result = callGeminiApi(requestBody);
             
             if (result != null && !result.isEmpty()) {
-                // Save to exact cache
-                try {
-                    String jsonResponse = objectMapper.writeValueAsString(result);
-                    FoodAnalysisCache cacheEntry = FoodAnalysisCache.builder()
-                            .queryKey(exactCacheKey)
-                            .responseJson(jsonResponse)
-                            .createdAt(LocalDateTime.now())
-                            .build();
-                    foodAnalysisCacheRepository.save(cacheEntry);
-                    logger.info("Saved exact search result to cache for key: {}", exactCacheKey);
-                } catch (Exception e) {
-                    logger.error("Failed to write to exact cache for key {}: {}", exactCacheKey, e.getMessage(), e);
-                }
+                logger.info("🎯 [Step 4 Result] Gemini LLM returned {} food item(s).", result.size());
+                // Save to PostgreSQL exact cache
+                saveToPgCache(exactCacheKey, result);
 
-                // Save to scaled cache if single item response
+                // Save to PostgreSQL scaled cache if single item response
                 if (result.size() == 1 && parsed.isValid() && parsed.quantity > 0) {
                     try {
                         FoodItemDto baseItem = scaleFoodItem(result.get(0), 1.0 / parsed.quantity, 1.0, parsed.unit);
@@ -309,12 +344,27 @@ public class GeminiVisionService {
                                 .createdAt(LocalDateTime.now())
                                 .build();
                         foodAnalysisCacheRepository.save(baseCacheEntry);
-                        logger.info("Saved scaled (1.0) search result to cache for key: {}", scaledCacheKey);
+                        logger.info("💾 Saved scaled base item (1.0) to PostgreSQL scaled cache key: {}", scaledCacheKey);
                     } catch (Exception e) {
                         logger.error("Failed to write to scaled cache for key {}: {}", scaledCacheKey, e.getMessage(), e);
                     }
                 }
+
+                // ── Grow Firestore: persist every LLM-returned item ──
+                for (FoodItemDto item : result) {
+                    // Normalise: store as a 1-serving base so future queries can scale
+                    FoodItemDto base = item;
+                    if (parsed.isValid() && parsed.quantity > 0 && result.size() == 1) {
+                        base = scaleFoodItem(item, 1.0 / parsed.quantity, 1.0, parsed.unit);
+                    }
+                    firestoreFoodRepository.saveFromLlm(base);
+                }
+                logger.info("🌱 [Firestore Grow] Auto-saved {} item(s) to Firestore NoSQL repository to grow database.", result.size());
+            } else {
+                logger.warn("⚠️ [Step 4 Result] Gemini LLM returned empty/null response.");
             }
+            logger.info("🏁 END FOOD SEARCH FLOW");
+            logger.info("=========================================");
             return result;
         } catch (Exception e) {
             logger.error("Gemini Text API preparation failed: {}", e.getMessage());
@@ -419,6 +469,48 @@ public class GeminiVisionService {
         }
 
         return new ParsedFood(normalizeBaseFood(query), 1.0, "piece");
+    }
+
+    // ─── Firestore helpers ────────────────────────────────────────────────────────
+
+    /**
+     * Tries to find a food item in Firestore using several candidate names derived
+     * from the parsed base food name and the raw query. This enables:
+     *   - exact match:   "aloo paratha"
+     *   - each word:     "aloo", "paratha"  (for compound queries like "daal chawal")
+     *   - raw query:     "aloo paratha 2 plates"
+     */
+    private Optional<FoodItemDto> lookupInFirestore(String baseFood, String rawQuery) {
+        List<String> candidates = new ArrayList<>();
+        // 1. Parsed base (most precise)
+        if (baseFood != null && !baseFood.isBlank()) candidates.add(baseFood);
+        // 2. Whole raw query (user may have typed the exact dish name)
+        if (rawQuery != null && !rawQuery.equals(baseFood)) candidates.add(rawQuery);
+        // 3. Each individual word from the base food (handles "daal chawal" → ["daal","chawal"])
+        if (baseFood != null) {
+            String[] words = baseFood.split("\\s+");
+            if (words.length > 1) {
+                candidates.addAll(Arrays.asList(words));
+            }
+        }
+
+        return firestoreFoodRepository.findByAnyName(candidates);
+    }
+
+    /** Saves a result list to the PostgreSQL exact-cache table. Silently logs on error. */
+    private void saveToPgCache(String cacheKey, List<FoodItemDto> result) {
+        try {
+            String jsonResponse = objectMapper.writeValueAsString(result);
+            FoodAnalysisCache cacheEntry = FoodAnalysisCache.builder()
+                    .queryKey(cacheKey)
+                    .responseJson(jsonResponse)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            foodAnalysisCacheRepository.save(cacheEntry);
+            logger.info("PostgreSQL cache: saved result for key '{}'", cacheKey);
+        } catch (Exception e) {
+            logger.error("Failed to write to PostgreSQL cache for key '{}': {}", cacheKey, e.getMessage(), e);
+        }
     }
 
     private FoodItemDto scaleFoodItem(FoodItemDto item, double factor, double requestedQty, String requestedUnit) {

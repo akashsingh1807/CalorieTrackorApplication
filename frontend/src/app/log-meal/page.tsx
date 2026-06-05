@@ -1,10 +1,10 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { aiAPI, mediaAPI, mealAPI } from '@/lib/api';
+import { aiAPI, mealAPI } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import {
-  Camera, Type, Sparkles, Plus, Trash2, Upload,
+  Type, Sparkles, Plus, Trash2,
   CheckCircle2, AlertCircle, ChevronDown, X, Loader2,
   Mic, Calendar
 } from 'lucide-react';
@@ -32,76 +32,17 @@ function estimateMacros(name: string): Omit<FoodItem, 'name'> {
   return { calories: 150, protein: 5, carbs: 20, fat: 5, servingSize: '1 serving' };
 }
 
-function compressImage(file: File, maxWidth = 1080, quality = 0.8): Promise<File> {
-  return new Promise((resolve) => {
-    if (!file.type.startsWith('image/')) {
-      resolve(file);
-      return;
-    }
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve(file);
-          return;
-        }
-        ctx.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
-                type: 'image/webp',
-                lastModified: Date.now(),
-              });
-              resolve(compressedFile);
-            } else {
-              resolve(file);
-            }
-          },
-          'image/webp',
-          quality
-        );
-      };
-      img.onerror = () => resolve(file);
-    };
-    reader.onerror = () => resolve(file);
-  });
-}
-
 export default function LogMealPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const [mealType, setMealType] = useState('LUNCH');
-  const [mode, setMode] = useState<'image' | 'text'>('image');
   const [textInput, setTextInput] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [preview, setPreview] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
-  const [uploadLoading, setUploadLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
 
   // Retroactive Date State & Voice Input States
   const [mealDate, setMealDate] = useState(() => {
@@ -191,39 +132,12 @@ export default function LogMealPage() {
     }
   };
 
-
-  const handleFileUpload = async (file: File) => {
-    setUploadLoading(true);
-    setError('');
-    try {
-      const compressed = await compressImage(file);
-      const res = await mediaAPI.upload(compressed);
-      const url = res.data.imageUrl || res.data.url;
-      setImageUrl(url);
-      setPreview(URL.createObjectURL(compressed));
-    } catch {
-      setError('Image upload failed. Please try again.');
-    } finally {
-      setUploadLoading(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file?.type.startsWith('image/')) handleFileUpload(file);
-  };
-
   const runAI = async () => {
     setAiLoading(true);
     setError('');
     try {
       let items: FoodItem[] = [];
-      if (mode === 'image' && imageUrl) {
-        const res = await aiAPI.analyzeImage(imageUrl);
-        items = res.data.foodItems || [];
-      } else if (mode === 'text' && textInput.trim()) {
+      if (textInput.trim()) {
         const res = await aiAPI.analyzeText(textInput);
         items = res.data.foodItems || [];
       }
@@ -257,7 +171,6 @@ export default function LogMealPage() {
 
       await mealAPI.logMeal({
         mealType,
-        imageUrl: imageUrl || undefined,
         foodItems: foodItems.map(f => ({
           name: f.name, calories: Number(f.calories), protein: Number(f.protein),
           carbs: Number(f.carbs), fat: Number(f.fat), servingSize: f.servingSize,
@@ -346,92 +259,48 @@ export default function LogMealPage() {
           </div>
         </div>
 
-        {/* Mode Toggle */}
+        {/* Input Area */}
         <div className="raw-card" style={{ padding: '1.25rem', marginBottom: '1.25rem' }}>
-          <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.25rem' }}>
-            <button onClick={() => setMode('image')} className={`btn btn-sm ${mode === 'image' ? 'btn-primary' : 'btn-ghost'}`}>
-              <Camera size={15} /> Photo Scan
-            </button>
-            <button onClick={() => setMode('text')} className={`btn btn-sm ${mode === 'text' ? 'btn-primary' : 'btn-ghost'}`}>
-              <Type size={15} /> Text Input
+          <div style={{ position: 'relative' }}>
+            <textarea
+              className="input"
+              placeholder="Describe what you ate… e.g. '2 rotis with dal makhani and a glass of lassi'"
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
+              rows={4}
+              style={{ resize: 'vertical', paddingRight: '3.5rem' }}
+            />
+            <button
+              type="button"
+              onClick={toggleSpeechToText}
+              className={`btn btn-icon ${isRecording ? 'mic-pulse-active' : ''}`}
+              style={{
+                position: 'absolute',
+                right: '0.75rem',
+                bottom: '0.75rem',
+                borderRadius: '50%',
+                width: '2.2rem',
+                height: '2.2rem',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: isRecording ? 'var(--accent-red, #ef4444)' : 'rgba(255, 255, 255, 0.08)',
+                border: isRecording ? 'none' : '1px solid var(--border-subtle)',
+                color: isRecording ? '#fff' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+              }}
+              title={isRecording ? 'Stop recording' : 'Start voice input'}
+            >
+              <Mic size={16} />
             </button>
           </div>
-
-          {mode === 'image' ? (
-            <>
-              {preview ? (
-                <div style={{ position: 'relative', marginBottom: '1rem' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={preview} alt="Meal preview" style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />
-                  <button onClick={() => { setPreview(''); setImageUrl(''); setFoodItems([]); }} style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', padding: '0.3rem', cursor: 'pointer', display: 'flex' }}>
-                    <X size={16} color="white" />
-                  </button>
-                </div>
-              ) : (
-                <div
-                  className={`upload-zone ${dragOver ? 'drag-over' : ''}`}
-                  onClick={() => fileRef.current?.click()}
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                  onDragLeave={() => setDragOver(false)}
-                  onDrop={handleDrop}
-                >
-                  {uploadLoading ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                      <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} /> Uploading…
-                    </div>
-                  ) : (
-                    <>
-                      <Upload size={32} color="var(--text-muted)" style={{ marginBottom: '0.75rem' }} />
-                      <p style={{ color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Drop your meal photo here</p>
-                      <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>or click to browse · JPG, PNG, WebP</p>
-                    </>
-                  )}
-                </div>
-              )}
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); }} />
-            </>
-          ) : (
-            <div style={{ position: 'relative' }}>
-              <textarea
-                className="input"
-                placeholder="Describe what you ate… e.g. '2 rotis with dal makhani and a glass of lassi'"
-                value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
-                rows={4}
-                style={{ resize: 'vertical', paddingRight: '3.5rem' }}
-              />
-              <button
-                type="button"
-                onClick={toggleSpeechToText}
-                className={`btn btn-icon ${isRecording ? 'mic-pulse-active' : ''}`}
-                style={{
-                  position: 'absolute',
-                  right: '0.75rem',
-                  bottom: '0.75rem',
-                  borderRadius: '50%',
-                  width: '2.2rem',
-                  height: '2.2rem',
-                  padding: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: isRecording ? 'var(--accent-red, #ef4444)' : 'rgba(255, 255, 255, 0.08)',
-                  border: isRecording ? 'none' : '1px solid var(--border-subtle)',
-                  color: isRecording ? '#fff' : 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                }}
-                title={isRecording ? 'Stop recording' : 'Start voice input'}
-              >
-                <Mic size={16} />
-              </button>
-            </div>
-          )}
 
           <button
             onClick={runAI}
             className="btn btn-primary"
-            disabled={aiLoading || (mode === 'image' ? !imageUrl : !textInput.trim())}
+            disabled={aiLoading || !textInput.trim()}
             style={{ marginTop: '1rem', width: '100%' }}
           >
             {aiLoading ? <span className="spinner" /> : <><Sparkles size={16} /> Identify with AI</>}

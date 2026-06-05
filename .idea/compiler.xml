@@ -9,6 +9,9 @@
         <module name="tracker" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="CalorieTracker.composeApp" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

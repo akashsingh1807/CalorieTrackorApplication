@@ -38,14 +38,14 @@ minio:
 gemini:
   fooddata:
     import:
-      enabled: true
+      enabled: false
       filePath: /Users/akashsingh/Downloads/FoodData_Central_foundation_food_csv_2026-04-30/food_calorie_conversion_factor.csv
   indianfood:
     import:
-      enabled: true
+      enabled: false
       url: https://raw.githubusercontent.com/lindsayjaacks/Indian-Nutrient-Databank-INDB-/master/indian_food.csv
   api:
-    key: ${GEMINI_API_KEY}
+    key: ${GEMINI_API_KEY:mock_api_key}
     url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
 
 nutrition:

@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,24 +52,37 @@ public class FoodController {
                 results = wordFiltered;
             }
         }
-        // 4️⃣ Fallback to Gemini service if nothing found
-        if (results.isEmpty()) {
-            FoodConversionFactor fetched = geminiService.fetchAndStore(trimmed);
+        List<Map<String,Object>> foods = new java.util.ArrayList<>();
+        
+        if (!results.isEmpty()) {
+            foods = results.stream()
+                .map(f -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("id",           f.getId());
+                    m.put("name",         f.getName());
+                    m.put("serving",      "100g");
+                    m.put("calories",     f.getCalories()     != null ? f.getCalories()     : BigDecimal.ZERO);
+                    m.put("protein",      f.getProtein()      != null ? f.getProtein()      : BigDecimal.ZERO);
+                    m.put("fat",          f.getFat()          != null ? f.getFat()          : BigDecimal.ZERO);
+                    m.put("carbohydrate", f.getCarbohydrate() != null ? f.getCarbohydrate() : BigDecimal.ZERO);
+                    return m;
+                })
+                .collect(Collectors.toList());
+        } else {
+            // 4️⃣ Fallback to Gemini service if nothing found
+            com.calorie.tracker.model.FoodInfo fetched = geminiService.fetchAndStore(trimmed);
             if (fetched != null) {
-                results = List.of(fetched);
+                Map<String, Object> m = new HashMap<>();
+                m.put("id",           fetched.getId());
+                m.put("name",         fetched.getName());
+                m.put("serving",      fetched.getServingSize() != null && fetched.getServingUnit() != null ? fetched.getServingSize() + " " + fetched.getServingUnit() : "1 serving");
+                m.put("calories",     fetched.getCalories()     != null ? BigDecimal.valueOf(fetched.getCalories())     : BigDecimal.ZERO);
+                m.put("protein",      fetched.getProtein()      != null ? BigDecimal.valueOf(fetched.getProtein())      : BigDecimal.ZERO);
+                m.put("fat",          fetched.getFat()          != null ? BigDecimal.valueOf(fetched.getFat())          : BigDecimal.ZERO);
+                m.put("carbohydrate", fetched.getCarbs()        != null ? BigDecimal.valueOf(fetched.getCarbs())        : BigDecimal.ZERO);
+                foods.add(m);
             }
         }
-        List<Map<String,Object>> foods = results.stream()
-            .map(f -> Map.of(
-                "id", f.getId(),
-                "name", f.getName(),
-                "serving", "100g",
-                "calories", f.getCalories() != null ? f.getCalories() : BigDecimal.ZERO,
-                "protein", f.getProtein() != null ? f.getProtein() : BigDecimal.ZERO,
-                "fat", f.getFat() != null ? f.getFat() : BigDecimal.ZERO,
-                "carbohydrate", f.getCarbohydrate() != null ? f.getCarbohydrate() : BigDecimal.ZERO
-            ))
-            .collect(Collectors.toList());
         return ResponseEntity.ok(Map.<String, Object>of("foods", foods));
     }
 

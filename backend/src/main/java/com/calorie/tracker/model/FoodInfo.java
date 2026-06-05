@@ -39,6 +39,9 @@ public class FoodInfo {
     @Column(columnDefinition = "TEXT")
     private String rawJson; // optional raw payload for traceability
 
+    private Double servingSize;
+    private String servingUnit;
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -74,4 +77,8 @@ public class FoodInfo {
     public void setVitaminD(Double vitaminD) { this.vitaminD = vitaminD; }
     public String getRawJson() { return rawJson; }
     public void setRawJson(String rawJson) { this.rawJson = rawJson; }
+    public Double getServingSize() { return servingSize; }
+    public void setServingSize(Double servingSize) { this.servingSize = servingSize; }
+    public String getServingUnit() { return servingUnit; }
+    public void setServingUnit(String servingUnit) { this.servingUnit = servingUnit; }
 }

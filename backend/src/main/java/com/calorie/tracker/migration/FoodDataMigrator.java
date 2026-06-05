@@ -1,6 +1,6 @@
 package com.calorie.tracker.migration;
 
-import com.calorie.tracker.model.FoodItemDto;
+import com.calorie.tracker.dto.FoodItemDto;
 import com.calorie.tracker.repository.FirestoreFoodRepository;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
